@@ -1,0 +1,4028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Maker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet">
+    <link href="./styles.css" rel="stylesheet">
+</head>
+<body>
+
+<div id="quiz-container">
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <button onclick="checkAnswer()">Submit Answer</button>
+    <button onclick="restartQuiz()" id="restartBtn" style="display: none;">Restart Quiz</button>
+    <div id="score"></div>
+</div>
+
+<script>
+
+/* question format
+
+{
+            question: "  ",
+            options: [
+                
+            "  ", 
+            
+            "  ", 
+            
+            "  "
+        
+        ],
+            correctOption: 1
+        },
+*/
+const initialQuestions = [
+  {
+    question: "1.To reach the right bank, it is necessary:",
+    options: [
+      "To deflect joystick to the right",
+      "To deflect joystick to the right, which will result in deviation of the right winglet upwards and left winglet downwards",
+      "Bank is controlled by elevator"
+    ],
+    correctOption: 1
+  },
+  {
+    question: "2.Elimination of side effects of winglets (turning) is achieved by:",
+    options: [
+      "Uneven deflection of winglets – smaller deviation upwards, bigger deviation upwards",
+      "Uneven deflection of winglets – smaller deviation downwards, bigger deviation upwards",
+      "These side effects are impossible to eliminate using winglets"
+    ],
+    correctOption: 1
+  },
+  {
+    question: "3.In case of deviation of the left wing spoiler, the following happens:",
+    options: [
+      "Lift of this wing increases",
+      "Lift of this wing decreases with subsequent turning to the left",
+      "Lift of this wing decreases with subsequent turning to the right"
+    ],
+    correctOption: 1
+  },
+  {
+    question: "4.Which of the following are most commonly used for pitch control:",
+    options: [
+      "Tailplanes or noseplanes",
+      "Lateral control rudders",
+      "Spoilers"
+    ],
+    correctOption: 0
+  },
+  {
+    question: "5.The so-called elevons are most frequently used on delta wings and function as:",
+    options: [
+      "Winglets and flaps",
+      "Flaps and elevator",
+      "Elevator and winglets"
+    ],
+    correctOption: 2
+  },
+  {
+    question: "6.When the joystick is deflected backward (pulling), the elevator on horizontal nosewheel surfaces will deflect:",
+    options: [
+      "Up",
+      "Down",
+      "Remains unchanged"
+    ],
+    correctOption: 1
+  },
+  {
+    question: "7. Vee-tail, or Butterfly tail surfaces serve for control of:",
+    options: [
+      "Turning and inclining (they combine lateral and directional control rudders)",
+      "Inclining and pitching (they combine lateral and longitudinal control rudders)",
+      "Pitching and turning (they combine longitudinal and directional control rudders)"
+    ],
+    correctOption: 2
+  },
+  {
+    question: "8. Deploying flaps will mostly cause:",
+    options: [
+      "Increase of the lift and drag coefficient",
+      "Increase of the lift and drag coefficient, moreover, pitching moment will appear in the meaning of 'heavy on the head'",
+      "Increase of the lift coefficient, decrease of the drag coefficient, moreover, pitching moment will appear in the meaning of 'heavy on the head'"
+    ],
+    correctOption: 1
+  },
+  {
+    question: "9.Slat is:",
+    options: [
+      "Flap on the trailing edge",
+      "Hinged wing leading edge",
+      "Fixed or extensible flap on the wing leading edge"
+    ],
+    correctOption: 2
+  },
+  {
+    question: "10. Aperture in flaps exists because of:",
+    options: [
+      "Technological reasons (production of split flap is easier)",
+      "Weight reasons",
+      "Aerodynamic reasons (speeds up the boundary layer)"
+    ],
+    correctOption: 2
+  },
+
+  {
+  question: "11.Whirlers:",
+  options: [
+    "a) Provide energy to the boundary layer",
+    "b) Remove energy from the boundary layer",
+    "c) Have no impact",
+  ],
+  correctOption: 0
+},
+{
+  question: "12.Slat effect resides in:",
+  options: [
+    "a) Acceleration of flow on the negative pressure part of the wing in case of a big angle of attack and thus postponement of boundary layer separation",
+    "b) Acceleration of flow on the positive pressure part of the wing in case of a big angle of attack and thus postponement of boundary layer separation",
+    "c) Acceleration of flow on both the negative and positive pressure part of the wing in case of a big angle of attack and thus postponement of boundary layer separation"
+  ],
+  correctOption: 0
+},
+{
+  question: "13.The effect of split flap resides in:",
+  options: [
+    "a) Increasing the profile curvature and thus in increasing the lift coefficient",
+    "b) Increasing of wing supporting surface",
+    "c) Draught of the boundary layer"
+  ],
+  correctOption: 0
+},
+{
+  question: "14.The following happens when the Fowler flap is deployed:",
+  options: [
+    "a) Increasing of wing supporting surface",
+    "b) Increasing of wing effective surface, influencing the boundary layer, and profile curvature",
+    "c) Boundary layer suction"
+  ],
+  correctOption: 1
+},
+{
+  question: "15.When slat is deployed:",
+  options: [
+    "a) The critical angle of attack is decreased",
+    "b) The critical angle of attack is increased",
+    "c) Slat does not affect the critical angle of attack"
+  ],
+  correctOption: 1
+},
+{
+  question: "16.Aerodynamic brakes serve for:",
+  options: [
+    "a) Decreasing the drag coefficient",
+    "b) Postponement of boundary layer separation",
+    "c) Increasing the drag coefficient"
+  ],
+  correctOption: 2
+},
+{
+  question: "17.What is the purpose of the fixed fletner on a rudder:",
+  options: [
+    "a) Mass balancing of rudders",
+    "b) Postponement of flow separation in case of stall",
+    "c) It reduces the permanent effect of control forces in case of a particular flight attitude"
+  ],
+  correctOption: 2
+},
+{
+  question: "18.Rudders are balanced in terms of mass to:",
+  options: [
+    "a) Reduce permanent control forces",
+    "b) Prevent fluttering",
+    "c) Eliminate permanent control forces"
+  ],
+  correctOption: 1
+},
+{
+  question: "19.Balance tab:",
+  options: [
+    "a) Prevents flutter",
+    "b) Eliminates permanent forces in the selected flight regime",
+    "c) Reduces control forces during the flight regime"
+  ],
+  correctOption: 1
+},
+{
+  question: "20.When balancing a climbing flight:",
+  options: [
+    "a) The balance tab is deflected downwards",
+    "b) The balance tab has the same deflection as the rudder",
+    "c) The balance tab is deflected upwards"
+  ],
+  correctOption: 0
+},
+
+
+{
+  question: "21.When the rudder is deflected in the case of corner relief, the following happens:",
+  options: [
+    "a) Force against the rudder deviation increases",
+    "b) Balancing force on the joystick decreases",
+    "c) No impact"
+  ],
+  correctOption: 2
+},
+{
+  question: "22.Sonar speed depends on:",
+  options: [
+    "a) The aircraft size",
+    "b) Temperature",
+    "c) Speed"
+  ],
+  correctOption: 1
+},
+{
+  question: "23.Critical Mach number:",
+  options: [
+    "a) Represents speed at which sonar speed is exceeded",
+    "b) Represents speed which cannot be exceeded",
+    "c) Represents speed at which local exceeding of sonar speed comes about"
+  ],
+  correctOption: 2
+},
+{
+  question: "24.When flow passes through a shock wave:",
+  options: [
+    "a) The lift coefficient increases",
+    "b) The drag coefficient increases",
+    "c) Pitching moment on the tail increases"
+  ],
+  correctOption: 1
+},
+{
+  question: "25.During sonar flight speed, shock waves concentrate to:",
+  options: [
+    "a) Single surface before the object perpendicular to the flight speed",
+    "b) Far away into space in front of the flying object",
+    "c) To the space behind the flying object"
+  ],
+  correctOption: 0
+},
+{
+  question: "26.When sonar speed is exceeded, the following happens:",
+  options: [
+    "a) Concentration of shock waves to a single surface in front of the object",
+    "b) Concentration of shock waves far away in front of the flying object",
+    "c) Concentration of cone flutters, at the top of which the flying object is located"
+  ],
+  correctOption: 2
+},
+{
+  question: "27.At subsonic speeds:",
+  options: [
+    "a) Pressure flutters are concentrated into a cone",
+    "b) Shock waves get far in front of the flying object",
+    "c) Pressure flutters are concentrated to a single surface"
+  ],
+  correctOption: 1
+},
+{
+  question: "28.Decrease of temperature with altitude causes:",
+  options: [
+    "a) Increasing of sonar speed",
+    "b) Temperature does not influence sonar speed",
+    "c) Decreasing of sonar speed"
+  ],
+  correctOption: 2
+},
+{
+  question: "29.During transsonic speeds, the following happens:",
+  options: [
+    "a) Drag coefficient decreases",
+    "b) At first, lift coefficient decreases and then it increases",
+    "c) Mach number value, in which lift decreases, is called Mach lift number"
+  ],
+  correctOption: 1
+},
+{
+  question: "30.In order to be given a Certificate of Airworthiness for big airliners, the following is observed:",
+  options: [
+    "a) Part-145",
+    "b)Easa CE-25",
+    "c) Part-66"
+  ],
+  correctOption: 1
+},
+
+
+{
+  question: "31.Lifespan of the structure is given by the time of operation:",
+  options: [
+    "a) During which fatigue malfunction may occur only with a very small probability",
+    "b) During which no malfunction occurs",
+    "c) During which the emergence of a fatigue crack is out of the question"
+  ],
+  correctOption: 0
+},
+{
+  question: "32.Partitions in an aircraft structure are:",
+  options: [
+    "a) Transverse structural members of the wing that comprise the wing shape (profile)",
+    "b) Auxiliary separating elements of an aircraft fuselage",
+    "c) Transverse structural members of an aircraft fuselage"
+  ],
+  correctOption: 2
+},
+{
+  question: "33.Primary aircraft structure does not include:",
+  options: [
+    "a) Tailplanes or noseplanes",
+    "b) Engine mounts",
+    "c) Rudder"
+  ],
+  correctOption: 2
+},
+{
+  question: "34.From a safety point of view, secondary structure is a structure:",
+  options: [
+    "a) Which endangers an aircraft as a whole if it breaks down",
+    "b) Which reduces the functionality of an aircraft if it breaks down but enables its emergency landing",
+    "c) Failure of which may be solved by using MMEL"
+  ],
+  correctOption: 1
+},
+{
+  question: "35.Basic aircraft fuselage body structure elements are:",
+  options: [
+    "a) Reinforcements, partitions, supports, skin",
+    "b) Supports, partitions, longerons, skin",
+    "c) Skin, ribs, supports, partitions"
+  ],
+  correctOption: 1
+},
+{
+  question: "36.Fuselage structure of aircraft is made by:",
+  options: [
+    "a) Riveting and welding",
+    "b) Welding",
+    "c) As per a new standard, connection may be made by self-locking nuts"
+  ],
+  correctOption: 0
+},
+{
+  question: "37.Metal aircraft skin is usually attached to an aircraft by:",
+  options: [
+    "a) Riveting",
+    "b) Welding",
+    "c) Pins and self-locking nuts"
+  ],
+  correctOption: 0
+},
+{
+  question: "38.Division of structure from the point of view of the impact of its malfunction on flight safety is:",
+  options: [
+    "a) Main and auxiliary",
+    "b) Fuselage, wing, tailplanes, motors, and undercarriage",
+    "c) Primary and secondary"
+  ],
+  correctOption: 2
+},
+{
+  question: "39.Structures of big airliners are:",
+  options: [
+    "a) Fail Safe",
+    "b) Safe Life",
+    "c) Resistant to damage"
+  ],
+  correctOption: 0
+},
+
+
+
+{
+  question: "40.Which construction requires a more demanding maintenance system:",
+  options: [
+    "a) Safe Life",
+    "b) Fail Safe",
+    "c) Both types of structure require similar maintenance"
+  ],
+  correctOption: 1
+},
+
+/* done above checking*/
+{
+  question: "41.ATA zone 100 of airliners refers to:",
+  options: [
+    "a) Wing",
+    "b) Undercarriage",
+    "c) Lower fuselage part"
+  ],
+  correctOption: 2
+},
+{
+  question: "42.ATA zone 500 of airliners refers to:",
+  options: [
+    "a) Left wing",
+    "b) Undercarriage",
+    "c) Right wing"
+  ],
+  correctOption: 0
+},
+{
+  question: "43.Numbering of fuselage partitions goes:",
+  options: [
+    "a) From the back to the front",
+    "b) From the aircraft center of gravity",
+    "c) From the front to the back"
+  ],
+  correctOption: 2
+},
+{
+  question: "44.As per ATA, sub-zones of airliners have:",
+  options: [
+    "a) Odd numbering",
+    "b) Even numbering",
+    "c) Even and odd numbering because they are numbered from the front to the back"
+  ],
+  correctOption: 0
+},
+{
+  question: "45.As per ATA, sub-zones of airliners are marked:",
+  options: [
+    "a) By the first numeral of three-digit mark",
+    "b) By the second numeral of three-digit mark",
+    "c) By the third numeral of three-digit mark"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "46.Zones are basic construction-technological units marked gradually:",
+  options: [
+    "a) From the front aircraft part to its tail, symmetrical parts on the right side have odd numbers and symmetrical parts on the left side even numbers",
+    "b) From the front aircraft part to its tail alternately from left to right",
+    "c) From the front aircraft part to its tail, symmetrical parts on the left side have odd numbers and symmetrical parts on the right side even numbers"
+  ],
+  correctOption: 2
+},
+{
+  question: "47.Fatigue strength is given for:",
+  options: [
+    "a) Static load",
+    "b) Dynamic load",
+    "c) Static and dynamic load"
+  ],
+  correctOption: 1
+},
+{
+  question: "48.In case of pressurized aircraft, the following is used for fuselage drainage:",
+  options: [
+    "a) Drainage openings containing drainage valves",
+    "b) Only drainage openings without drainage valves",
+    "c) Drainage valves which control the aircraft overpressure system"
+  ],
+  correctOption: 0
+},
+{
+  question: "49.On the ground, drainage valves in the fuselage drainage system are:",
+  options: [
+    "a) Closed",
+    "b) Opened only in the presence of liquids in the area of valves",
+    "c) Open"
+  ],
+  correctOption: 2
+},
+{
+  question: "50.The main purpose of protection in case of a lightning strike in the area of integral fuel tanks is:",
+  options: [
+    "a) To prevent fuel ignition",
+    "b) To prevent ignition of fuel steams",
+    "c) To prevent radio signals interference"
+  ],
+  correctOption: 1
+},
+
+/* done above checking*/
+{
+  question: "51.The radio cover is protected against static electricity by:",
+  options: [
+    "a) Conductive paint",
+    "b) Special conductive lubricant",
+    "c) Non-conductive paint"
+  ],
+  correctOption: 0
+},
+{
+  question: "52.Before lifting an aircraft on jacks:",
+  options: [
+    "a) Fuel tanks must be empty",
+    "b) Additional equipment must be dismantled",
+    "c) All supporting panels and covers must be reliably installed"
+  ],
+  correctOption: 2
+},
+{
+  question: "53.Non-supporting skin transfers which stress:",
+  options: [
+    "a) None",
+    "b) Tensile",
+    "c) Compressive"
+  ],
+  correctOption: 1
+},
+{
+  question: "54.In current big airlines, supports are used for:",
+  options: [
+    "a) Wing and tail assembly",
+    "b) Only for fuselage",
+    "c) For fuselage and motor pods"
+  ],
+  correctOption: 2
+},
+{
+  question: "55.During river installation on a pressurized fuselage, binding agents are used to:",
+  options: [
+    "a) Seal off the connection",
+    "b) Reduce noise",
+    "c) Increase conductivity of the connection"
+  ],
+  correctOption: 0
+},
+{
+  question: "56.Metal surfaces are protected against:",
+  options: [
+    "a) Corrosion, erosion and damage by corrosive liquids",
+    "b) Corrosion",
+    "c) Erosion and damage by corrosive liquids"
+  ],
+  correctOption: 0
+},
+{
+  question: "57.Anodic oxidation as a method of surface finish of metals is used on:",
+  options: [
+    "a) Iron alloys",
+    "b) Aluminium alloys",
+    "c) Copper alloys"
+  ],
+  correctOption: 1
+},
+{
+  question: "58.Cadmium plating as a method of surface finish of metals is used on:",
+  options: [
+    "a) Titanium alloys",
+    "b) Steels",
+    "c) Aluminium alloys"
+  ],
+  correctOption: 1
+},
+{
+  question: "59.Inspection of aircraft symmetry should be carried out:",
+  options: [
+    "a) In a hangar with closed gates, aircraft should be jacked up",
+    "b) Outdoors, aircraft should be jacked up",
+    "c) In a hangar with closed gates, aircraft should be on wheels"
+  ],
+  correctOption: 2
+},
+{
+  question: "60.Pressurized fuselage of current airlines usually:",
+  options: [
+    "a) Does not have pressurized partitions",
+    "b) Has front and back pressurized partitions",
+    "c) Has front, wing, and back pressurized partition"
+  ],
+  correctOption: 1
+},
+{
+  question: "61.Which of the following wing configurations is more advantageous for the usage of aircraft from grassy airports:",
+  options: [
+    "a) High-wing",
+    "b) Low-wing",
+    "c) It does not have any influence"
+  ],
+  correctOption: 2
+},
+{
+  question: "62.Duck horizontal tail assemblies are:",
+  options: [
+    "a) Behind an aircraft center of gravity",
+    "b) In the back of an aircraft",
+    "c) Before an aircraft center of gravity"
+  ],
+  correctOption: 2
+},
+{
+  question: "63.Left and right horizontal stabilizer has:",
+  options: [
+    "a) The same deviation up or down with the exception of modern military fighter planes (transverse control function)",
+    "b) Always opposite deviation (one up and the other down)",
+    "c) Same deviation only in the case of straightforward flight, always different on a bend"
+  ],
+  correctOption: 0
+},
+{
+  question: "64.Which control surface is attached to the vertical stabilizer?",
+  options: [
+    "a) Elevator",
+    "b) Rudder",
+    "c) Winglets"
+  ],
+  correctOption: 1
+},
+{
+  question: "65.When fastening seats to rails, pitch between seats may be changed:",
+  options: [
+    "a) No - due to safety in case of emergency landing",
+    "b) Yes, using another supplementary load-bearing structure",
+    "c) Yes, usually without another load-bearing structure"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "66.Pylons in wings may be used for:",
+  options: [
+    "a) Drive units",
+    "b) Drive units and additional fuel tanks",
+    "c) Drive units, additional fuel tanks, and weapon systems"
+  ],
+  correctOption: 2
+},
+{
+  question: "67.Which of the following flaps has the highest aerodynamic effectivity:",
+  options: [
+    "a) Plain flap",
+    "b) Double slotted flap",
+    "c) Single slotted flap"
+  ],
+  correctOption: 1
+},
+{
+  question: "68.Spoilers are attached to suspenders on:",
+  options: [
+    "a) The back wing support",
+    "b) Front wing support",
+    "c) Wing ribs"
+  ],
+  correctOption: 0
+},
+{
+  question: "69.To prevent fluttering (self-excited vibration of control surfaces), the following is used:",
+  options: [
+    "a) Aerodynamic relief",
+    "b) Aerodynamic balancing",
+    "c) Mass balancing"
+  ],
+  correctOption: 2
+},
+{
+  question: "70.In case of a big change of weight in the course of maintenance (repair) of control surfaces:",
+  options: [
+    "a) Aircraft needs to be balanced out",
+    "b) Balancing must be made on a special balancing device (it is necessary to dismantle it from the aircraft)",
+    "c) Aircraft must be sent to the production factory"
+  ],
+  correctOption: 1
+},
+{
+  question: "71.In case of the construction of wing beam semi-monocoque, bending is transferred by:",
+  options: [
+    "a) Support, longerons, skin",
+    "b) Longerons",
+    "c) Skin"
+  ],
+  correctOption: 0
+},
+{
+  question: "72.How is it secured that aircraft windows are safe after malfunction:",
+  options: [
+    "a) By mounting in the fixed chassis",
+    "b) By firm attachment to the fuselage structure",
+    "c) By a multiple-layer structure, where each layer of windows is capable of transferring pressure load independently"
+  ],
+  correctOption: 2
+},
+{
+  question: "73.Which control surface is attached to the horizontal stabilizer:",
+  options: [
+    "a) Rudder",
+    "b) Elevator",
+    "c) Winglet"
+  ],
+  correctOption: 1
+},
+{
+  question: "74.Elevon is a control surface:",
+  options: [
+    "a) Usually on a wing, and it unifies the winglet and elevator functions",
+    "b) Of a device meant for increasing of drag",
+    "c) A special landing flap"
+  ],
+  correctOption: 0
+},
+{
+  question: "75.To pressurize a cabin during flight, the following is used in modern jet planes:",
+  options: [
+    "a) Ram air from catchers on an aircraft surface (RAM)",
+    "b) Air drawn from APU",
+    "c) Air drawn from engine compressors"
+  ],
+  correctOption: 2
+},
+{
+  question: "76.APU, as a source of compressed air to a cabin of a big airliner:",
+  options: [
+    "a) May be used only on the ground when aircraft engines do not operate",
+    "b) May be used during flight, but operation of APU may be limited by flight altitude",
+    "c) May be used only on the ground as an emergency source of compressed air at low engine revolutions"
+  ],
+  correctOption: 1
+},
+{
+  question: "77.Connection of ground source of compressed air of a big airliner may be used:",
+  options: [
+    "a) Only for emergency starting of engines using air starter",
+    "b) Only for verification of cabin pressurization, engines may not be started from a ground source",
+    "c) For feeding all appliances of the pneumatic system by compressed air"
+  ],
+  correctOption: 2
+},
+{
+  question: "78.What is the main source of air for air conditioning during boarding of passengers in big airliners with jet engines:",
+  options: [
+    "a) Air conditioning must be turned off on the ground",
+    "b) APU",
+    "c) Engine No. 2"
+  ],
+  correctOption: 1
+},
+{
+  question: "79.Recycling of air from the passengers' cabin in big airliners is:",
+  options: [
+    "a) Forbidden due to the safety of the crew",
+    "b) Used to reduce demands on the amount of air for air conditioning",
+    "c) Used only as an emergency option when air conditioning is discontinued"
+  ],
+  correctOption: 1
+},
+{
+  question: "80.In case of big airliners with jet engines, what is used to cool air for air conditioning:",
+  options: [
+    "a) Offtake of cold air on the input of the engine compressor before heating by compression",
+    "b) Cooling of air on the ACMN turbine and using thermal exchangers",
+    "c) A device that functions on the same principle as a refrigerator, but the used media is not Freon"
+  ],
+  correctOption: 1
+},
+
+{
+  question: "81.Humidity of air used for air conditioning:",
+  options: [
+    "a) Is not adjusted",
+    "b) Air humidity is decreased by drying when air passes through AMC hot parts",
+    "c) Air humidity is decreased by air drying and the following water condensation"
+  ],
+  correctOption: 2
+},
+{
+  question: "82.Turbo cooler is usually part of:",
+  options: [
+    "a) Air conditioning unit",
+    "b) APU",
+    "c) Jet engine by which it is powered"
+  ],
+  correctOption: 0
+},
+{
+  question: "83.The principle of the turbo cooler resides in:",
+  options: [
+    "a) Transformation of pressure and thermal energy on the turbine into mechanical work",
+    "b) Transformation of mechanical work, i.e. compression of air into intense cooling of air",
+    "c) Quick rotation of the air flow (turbo effect) by which the medium is cooled"
+  ],
+  correctOption: 2
+},
+{
+  question: "84.Turbo cooler is a device that:",
+  options: [
+    "a) Creates the necessary pressure in the pneumatic system",
+    "b) Cools air for the aircraft air conditioning system",
+    "c) Heats the air of the aircraft air conditioning system to the required value"
+  ],
+  correctOption: 1
+},
+{
+  question: "85.Temperature in cabins of big airliners:",
+  options: [
+    "a) May be different in the pilots' cabin and passengers' cabin",
+    "b) Must be the same in the pilots' cabin and in the passengers' cabin because air of the same preset temperature comes out from an air conditioning unit",
+    "c) Each passenger sets the temperature of the air as per his/her own wishes"
+  ],
+  correctOption: 1
+},
+{
+  question: "86.Optimum cabin humidity in the passengers' cabin is:",
+  options: [
+    "a) 30% at the most",
+    "b) 30-70%",
+    "c) At least 70%"
+  ],
+  correctOption: 1
+},
+{
+  question: "87.Optimum temperature in the passengers' cabin is:",
+  options: [
+    "a) 22-26 °C",
+    "b) 12-18°C",
+    "c) 18-24°C"
+  ],
+  correctOption: 2
+},
+{
+  question: "88.Air conditioning may work:",
+  options: [
+    "a) Only during flight (because aircraft engines are working)",
+    "b) During flight and also during taxi at the airport (if at least 1 aircraft engine is running)",
+    "c) During flight, during taxi at the airport and also when standing without aircraft engines running"
+  ],
+  correctOption: 2
+},
+{
+  question: "89.Air ventilated from kitchens and restrooms is led:",
+  options: [
+    "a) Directly to the surrounding atmosphere",
+    "b) Through special filters back to the air conditioning system",
+    "c) Kitchens and restrooms have their own closed air system"
+  ],
+  correctOption: 2
+},
+{
+  question: "90.What is the minimum temperature in the water separator of the air conditioning system:",
+  options: [
+    "a) 2°C",
+    "b) -2°C",
+    "c) 10°C"
+  ],
+  correctOption: 0
+},
+
+{
+  question: "91.The main task of an aircraft air conditioning system is to:",
+  options: [
+    "a) Secure suitable temperature, air humidity during flight, and air renewal",
+    "b) Secure appropriate air pressure during flight in higher flight altitudes",
+    "c) Secure a sufficient amount of oxygen for crew and passengers during flight in higher flying altitudes"
+  ],
+  correctOption: 0
+},
+{
+  question: "92.What height above sea is the human organism capable of tolerating without air conditioning:",
+  options: [
+    "a) 3,000m",
+    "b) 4,000m",
+    "c) 5,000m"
+  ],
+  correctOption: 0
+},
+{
+  question: "93.Hypoxia is:",
+  options: [
+    "a) Pathological insomnia",
+    "b) Fear of heights",
+    "c) Insufficient amount of oxygen in the organism"
+  ],
+  correctOption: 2
+},
+{
+  question: "94.Pressurized and air-conditioned areas of an aircraft are:",
+  options: [
+    "a) Pilots' and passengers' cabin, luggage holds have half values of overpressure and temperature",
+    "b) Pilots' and passengers' cabin, luggage holds, and restrooms",
+    "c) Pilots' and passengers' cabin, luggage holds, restrooms, and aircraft electric equipment"
+  ],
+  correctOption: 2
+},
+{
+  question: "95.Cabin overpressure, the so-called cabin altitude in cabins of big airliners during take-off:",
+  options: [
+    "a) Is lower than the surrounding air pressure",
+    "b) Is the same as the surrounding air pressure",
+    "c) Is higher than the surrounding air pressure"
+  ],
+  correctOption: 2
+},
+{
+  question: "96.The so-called cabin altitude of current big airliners is usually:",
+  options: [
+    "a) Approximately 1,400m",
+    "b) Approximately 2,400m",
+    "c) Approximately 3,850m"
+  ],
+  correctOption: 1
+},
+{
+  question: "97.Clack valves of the pneumatic system:",
+  options: [
+    "a) Are usually controlled by a spring",
+    "b) Must not have a spring with back-pressure",
+    "c) Are controlled pneumatically"
+  ],
+  correctOption: 2
+},
+{
+  question: "98.Regulation of the so-called cabin altitude (pressure) in the cabin of airliners is carried out (in general):",
+  options: [
+    "a) Only by draining pressure to the surrounding atmosphere",
+    "b) Only by reducing or increasing pressure of the air supplied to the cabin",
+    "c) By reducing or increasing pressure of the air supplied to the cabin, or by draining pressure to the surrounding atmosphere"
+  ],
+  correctOption: 2
+},
+{
+  question: "99.Safety valves of pressurized cabins of airlines protect the aircraft fuselage:",
+  options: [
+    "a) Only against high overpressure, underpressure may not occur during flight",
+    "b) Only against underpressure, higher overpressure is not a problem, construction is dimensioned for this",
+    "c) Against underpressure and overpressure so that aircraft skin and construction are not disrupted"
+  ],
+  correctOption: 2
+},
+{
+  question: "100.With increasing flight altitude, the difference between the external pressure and cabin altitude:",
+  options: [
+    "a) Decreases",
+    "b) Does not change (it is constant)",
+    "c) Increases"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "101.On-board sources of air for air conditioning of aircraft are:",
+  options: [
+    "a) Compressor stages of jet engines",
+    "b) Auxiliary units (APU), compressor stages of jet engines, or compressors powered by piston engines",
+    "c) Mobile ground sources"
+  ],
+  correctOption: 1
+},
+{
+  question: "102.In up-to-date airliners, air for the pneumatic system in high regimes of jet engines is taken from which compressor stage:",
+  options: [
+    "a) Only low-pressure",
+    "b) Only high-pressure",
+    "c) Always from both"
+  ],
+  correctOption: 2
+},
+{
+  question: "103.Pressure regulator and closing valve (PRSOV) of air offtake automatically close when:",
+  options: [
+    "a) Maximum pressure is exceeded, fire and engine start",
+    "b) Maximum temperature is exceeded, fire and engine start",
+    "c) Maximum temperature and pressure are exceeded, fire, engine start"
+  ],
+  correctOption: 2
+},
+{
+  question: "104.During flight, the pressurized safety valve works:",
+  options: [
+    "a) Manually - as per crew operation in case of malfunction of the pressurization system",
+    "b) It automatically opens in case of negative pressure in an aircraft",
+    "c) Automatically in case of the pressurization system malfunction and increase of overpressure above the set limit (8.65 psid)"
+  ],
+  correctOption: 2
+},
+{
+  question: "105.Underpressure safety valve in the overpressure system is in operation:",
+  options: [
+    "a) When pressure in aircraft is bigger than outside pressure by entered value",
+    "b) If pressure in aircraft is the same as outside pressure (on the ground)",
+    "c) If pressure in aircraft is lower by entered value than outside pressure"
+  ],
+  correctOption: 2
+},
+{
+  question: "106.On the ground, the main bleeding valve in the aircraft pressurized system is:",
+  options: [
+    "a) Fully closed",
+    "b) Fully opened",
+    "c) Opened to 20 percent"
+  ],
+  correctOption: 1
+},
+{
+  question: "107.To increase the safety of the aircraft pressurized system, current airliners have:",
+  options: [
+    "a) 2 independent automatic systems and manual control of the main bleeding valve",
+    "b) 1 automatic system and manual control of the main bleeding valve",
+    "c) 2 manual controls of the bleeding valve"
+  ],
+  correctOption: 0
+},
+{
+  question: "108.During testing of overpressure on the ground in airliners:",
+  options: [
+    "a) All outer doors must be closed, doors to the cargo area may be open",
+    "b) Interior doors must be closed",
+    "c) All outer doors and doors to the cargo area must be closed"
+  ],
+  correctOption: 2
+},
+{
+  question: "109.Friction effect in barometric altimeters reflects the ratio between:",
+  options: [
+    "a) Value subtracted on altimeter after reaching the set altitude and introduction of vibrations",
+    "b) Value subtracted on altimeter during and in the course of reaching the set altitude with introduced vibrations",
+    "c) Value subtracted on altimeter after reaching the set altitude and stabilized static pressure without the introduction of vibrations"
+  ],
+  correctOption: 2
+},
+{
+  question: "110.Which of the following has the principal influence on barometric box hysteresis:",
+  options: [
+    "a) Atmosphere density, ambient temperature, and IAS speed",
+    "b) Positive vertical speed bigger than 6000 Ft/min (30.5m/s)",
+    "c) Negative vertical speed bigger than 6000 Ft/min (30.5m/s)"
+  ],
+  correctOption: 1
+},
+{
+  question: "111.In the airspeed indicator, Impact Press expresses the relationship between:",
+  options: [
+    "a) Mach number smaller than 0.8M and IAS",
+    "b) Differential pressure on the airspeed indicator input and vertical speed",
+    "c) Pressure inside and outside the barometric box of the airspeed indicator pitot port"
+  ],
+  correctOption: 2
+},
+{
+  question: "112.CAS Is:",
+  options: [
+    "a) IAS speed corrected by the position of the Pitot tube",
+    "b) TAS speed corrected by the position of the Pitot tube",
+    "c) EAS speed corrected by the position of the Pitot tube"
+  ],
+  correctOption: 2
+},
+{
+  question: "113.TAS value is a Mach number expressed in a different way:",
+  options: [
+    "a) Yes",
+    "b) No",
+    "c) Only in GS ratio"
+  ],
+  correctOption: 0
+},
+{
+  question: "114.Variometer accuracy is calibrated by means of:",
+  options: [
+    "a) Variometer input port width",
+    "b) Variometer output port width",
+    "c) Variometer output port capillary tube"
+  ],
+  correctOption: 2
+},
+{
+  question: "115.Standard atmosphere determines:",
+  options: [
+    "a) Ideal sea level in H=0m, air pressure of 1013.25hPa, temperature of 15°C, air density of 1.225 kg/m³",
+    "b) Ideal sea level in H=11000m, air pressure of 1013.25hPa, temperature of 21°C, air density of 1.225 kg/m³",
+    "c) Ideal sea level in H=5000m, air pressure of 1013.25hPa, temperature of 21°C, air density of 1.225 kg/m³"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "116.Common value for altimeter and airspeed indicator is:",
+  options: [
+    "a) VS",
+    "b) Ps",
+    "c) Pt"
+  ],
+  correctOption: 1
+},
+{
+  question: "117.Encoder Altimeter cooperates with which system:",
+  options: [
+    "a) DME, speed and altitude parameter",
+    "b) ATC, altitude parameter for the C mode",
+    "c) NDB/DME altitude parameter"
+  ],
+  correctOption: 1
+},
+{
+  question: "118.To scan position in an inertial environment, the artificial horizon utilizes:",
+  options: [
+    "a) One latitude frame",
+    "b) Two latitude frames",
+    "c) Three latitude frames"
+  ],
+  correctOption: 2
+},
+{
+  question: "119.HSI indicator usually indicates parameters of:",
+  options: [
+    "a) Pitch",
+    "b) Pitch, roll",
+    "c) HDG"
+  ],
+  correctOption: 2
+},
+{
+  question: "120.Rate-of-turn indicator is composed of:",
+  options: [
+    "a) Gyro and one frame",
+    "b) Gyro and two frames",
+    "c) Gyro and three frames"
+  ],
+  correctOption: 0
+},
+{
+  question: "121.Low revolutions of the gyro for artificial horizons result in:",
+  options: [
+    "a) Correct operation of the gyroscope in long turns, banks",
+    "b) Horizon burying",
+    "c) Correct gyroscope operation in quick turns, banks"
+  ],
+  correctOption: 1
+},
+{
+  question: "122.The ADI indicator serves for indication of which parameters:",
+  options: [
+    "a) Pitch",
+    "b) Pitch, roll",
+    "c) HDG"
+  ],
+  correctOption: 1
+},
+{
+  question: "123.Magnetic liquid compass indicates:",
+  options: [
+    "a) Course linked to the magnetic north",
+    "b) Course linked to the geographical north",
+    "c) Course related to the GPS north"
+  ],
+  correctOption: 0
+},
+{
+  question: "124.Slip indication is displayed on:",
+  options: [
+    "a) HSI",
+    "b) RMI",
+    "c) Rate-of-turn indicator"
+  ],
+  correctOption: 2
+},
+{
+  question: "125.Besides other things, HSI may indicate:",
+  options: [
+    "a) Pitch parameters and G/S",
+    "b) HDG and BRG",
+    "c) Roll parameters and LOC"
+  ],
+  correctOption: 1
+},
+{
+  question: "126.Correct distribution of flight instruments is:",
+  options: [
+    "a) ASI on the left, ADI in the middle, ALT and VSI on the right",
+    "b) ASI on the right, ADI in the middle, ALT and VSI on the left",
+    "c) ASI on the left, HSI in the middle, ALT and VSI on the right"
+  ],
+  correctOption: 0
+},
+{
+  question: "127.AOA sensor serves for:",
+  options: [
+    "a) Aircraft angle of attack indication",
+    "b) Ambient air temperature indication",
+    "c) Indication of the roll axis"
+  ],
+  correctOption: 0
+},
+{
+  question: "128.Aircraft stall speed is signaled:",
+  options: [
+    "a) As per speed of actual static pressure and turn angle",
+    "b) As per speed, aircraft configuration, and angle of attack",
+    "c) As per speed, aircraft configuration, and radio altitude"
+  ],
+  correctOption: 1
+},
+{
+  question: "129.Vibrator in the altimeter system:",
+  options: [
+    "a) Eliminates altimeter friction effect error",
+    "b) Eliminates pointer trembling caused by aircraft vibrations",
+    "c) Eliminates altimeter scale error"
+  ],
+  correctOption: 0
+},
+{
+  question: "130.CRS deviation on HSI informs on:",
+  options: [
+    "a) Deviation from the required altitude",
+    "b) Deviation from the required radial",
+    "c) Deviation from the required HDG"
+  ],
+  correctOption: 2
+},
+{
+  question: "131.The OBS function on HSI replaces:",
+  options: [
+    "a) Navigation systems",
+    "b) Course system (HDG)",
+    "c) ILS system"
+  ],
+  correctOption: 1
+},
+{
+  question: "132.Magnetic direction scanning for HSI indicator, EFIS indicator, and such is secured by:",
+  options: [
+    "a) Flex detector",
+    "b) Liquid compass",
+    "c) Pitot-static system"
+  ],
+  correctOption: 0
+},
+{
+  question: "133.Present Position is:",
+  options: [
+    "a) Aircraft target position",
+    "b) Current aircraft position",
+    "c) Initial aircraft position"
+  ],
+  correctOption: 1
+},
+{
+  question: "134.Aircraft position scanning in the most up-to-date aircraft is secured by:",
+  options: [
+    "a) AHRS, IRS",
+    "b) Vacuum gyroscope, ALT STBY gyroscope",
+    "c) AHRS, GPS"
+  ],
+  correctOption: 0
+},
+{
+  question: "135.Magnetic declination:",
+  options: [
+    "a) Is the same in all geographical latitudes in a two-year period",
+    "b) Differs as per geographical latitude every year",
+    "c) Is the same as at the equator"
+  ],
+  correctOption: 1
+},
+{
+  question: "136.Harmonization of inertial systems is possible up to:",
+  options: [
+    "a) 78° of northern and southern parallel of latitude",
+    "b) 60° of northern and southern parallel of latitude",
+    "c) 50° of northern and southern parallel of latitude"
+  ],
+  correctOption: 1
+},
+{
+  question: "137.Besides others, which of the following parameters interferes in the IRS system:",
+  options: [
+    "a) Engine power",
+    "b) AOA",
+    "c) Cabin altitude"
+  ],
+  correctOption: 1
+},
+{
+  question: "138.Autopilot architecture is composed of:",
+  options: [
+    "a) Navigation systems, FCC autopilot computer, performing elements (servos)",
+    "b) Course system, FCC autopilot computer, performing elements",
+    "c) GPS system, FCC autopilot computer, performing elements"
+  ],
+  correctOption: 0
+},
+{
+  question: "139.Autopilot basic functions are:",
+  options: [
+    "a) Flight stabilization in lateral and vertical modes",
+    "b) Flight stabilization for automatic landing mode (APPR)",
+    "c) Flight stabilization depending on engine thrust"
+  ],
+  correctOption: 0
+},
+{
+  question: "140.The YAW DUMPER function serves for:",
+  options: [
+    "a) Aircraft control in the longitudinal axis",
+    "b) Aircraft control in pitch",
+    "c) Dampening of side yaws"
+  ],
+  correctOption: 2
+},
+{
+  question: "141.In Autopilot, control surfaces (AIL, ELEV, RUD) are controlled:",
+  options: [
+    "a) Simultaneously, all three axes at the same time",
+    "b) Simultaneously, pitch and roll axes",
+    "c) Simultaneously, pitch and yaw axes"
+  ],
+  correctOption: 0
+},
+{
+  question: "142.Aircraft are fitted with VHF radio stations working in a band:",
+  options: [
+    "a) From 118MHz",
+    "b) From 108MHz",
+    "c) From 75MHz"
+  ],
+  correctOption: 0
+},
+{
+  question: "143.The Intercom system secures communication between:",
+  options: [
+    "a) Crew in the cockpit and Air Traffic Control",
+    "b) Crew in the cockpit and ground personnel",
+    "c) Crew in the cockpit and other aircraft"
+  ],
+  correctOption: 1
+},
+{
+  question: "144.CVR - cockpit voice recorder serves for:",
+  options: [
+    "a) Voice commands for navigation systems",
+    "b) Saving a record of all communication on board",
+    "c) Cooperation with the ACARYS system"
+  ],
+  correctOption: 1
+},
+{
+  question: "145.Location of communication antennas on the fuselage is:",
+  options: [
+    "a) Random depending on aircraft structure possibilities",
+    "b) Strict to observe distances, especially between the GPS antenna",
+    "c) Random, as per AMM"
+  ],
+  correctOption: 1
+},
+
+
+{
+  question: "146.G/S means:",
+  options: [
+    "Glide path related to the ILS system",
+    "Glide path related to the VOR system",
+    "Glide path related to the VNAV system"
+  ],
+  correctOption: 0
+},
+{
+  question: "147.NAV systems work within the band of:",
+  options: [
+    "108-117.99MHz",
+    "108-117.99KHz",
+    "108-117.99GHz"
+  ],
+  correctOption: 0
+},
+{
+  question: "148.LOC Deviation is usually displayed on:",
+  options: [
+    "HSI and RMI",
+    "HSI and ADI",
+    "HSI and STBY Compass"
+  ],
+  correctOption: 1
+},
+{
+  question: "149.The ADF system determines:",
+  options: [
+    "Distance to radio beacon",
+    "Position To-From to radio beacon",
+    "Directional position to radio beacon"
+  ],
+  correctOption: 2
+},
+{
+  question: "150.Secondary radar system in A mode:",
+  options: [
+    "Responds to SQUAWK query",
+    "Responds to query for ALT",
+    "Responds to query for GPS position"
+  ],
+  correctOption: 1
+},
+{
+  question: "151.The Secondary Radar System works in modes:",
+  options: [
+    "A/B/C",
+    "A/C/S",
+    "A/C/D"
+  ],
+  correctOption: 1
+},
+{
+  question: "152.What does the Ground DME Station System transmit to aircraft:",
+  options: [
+    "Data on altitude, and it may be supplemented by ID Morse code",
+    "Data on speed, and it may be supplemented by ID Morse code",
+    "Data on distance, and it may be supplemented by ID Morse code"
+  ],
+  correctOption: 2
+},
+{
+  question: "153.The TCAS system communicates:",
+  options: [
+    "With Air Traffic Control",
+    "With TCAS systems of surrounding aircraft",
+    "With primary radar systems"
+  ],
+  correctOption: 1
+},
+{
+  question: "154.Radioaltimeter indicates:",
+  options: [
+    "Radio altitude to 2500 Ft",
+    "Radio altitude continuously",
+    "Radio altitude only 50 Ft prior to landing"
+  ],
+  correctOption: 0
+},
+{
+  question: "155.The WXR system is dangerous to persons in distance:",
+  options: [
+    "Up to 5m",
+    "Up to 100 m",
+    "It is not dangerous"
+  ],
+  correctOption: 0
+},
+{
+  question: "156.The WXR antenna is:",
+  options: [
+    "Stationary",
+    "Movable - roll (+ - 90°)",
+    "Movable - pitch (+ - 15°), roll (+ - 90°)"
+  ],
+  correctOption: 2
+},
+{
+  question: "157.The MB system:",
+  options: [
+    "Is displayed in OM, IM, MM modes",
+    "Is displayed in KM, NM, VM modes",
+    "Is displayed in AM, BM, CM modes"
+  ],
+  correctOption: 0
+},
+{
+  question: "158.Aircraft basic or auxiliary power source is:",
+  options: [
+    "AC generator",
+    "Accumulator (battery)",
+    "DC generator"
+  ],
+  correctOption: 1
+},
+{
+  question: "159.Accumulator capacity is expressed:",
+  options: [
+    "In ampere-hours",
+    "In kilowatts",
+    "In hertz"
+  ],
+  correctOption: 0
+},
+{
+  question: "160.Lead accumulator cell provides nominal voltage of:",
+  options: [
+    "1.4 V",
+    "3.0 V",
+    "2.0 V"
+  ],
+  correctOption: 2
+},
+
+
+{
+  question: "161.Basic division of accumulators is:",
+  options: [
+    "Lead, alkaline",
+    "Alkaline, nickel-cadmium",
+    "Nickel-cadmium, lead, lithium-ion"
+  ],
+  correctOption: 0
+},
+{
+  question: "162.Typical accumulator parameters are:",
+  options: [
+    "Voltage, capacity",
+    "Internal resistance, capacity, weight",
+    "Voltage, capacity, internal resistance, dependence on temperature"
+  ],
+  correctOption: 2
+},
+{
+  question: "163.Accumulators may be charged by:",
+  options: [
+    "Constant voltage and temperature",
+    "Constant current and voltage",
+    "Constant frequency and resistance"
+  ],
+  correctOption: 1
+},
+{
+  question: "164.Constant charging current is equal to:",
+  options: [
+    "1/5 of accumulator capacity",
+    "1/10 - 1/4 of accumulator capacity",
+    "1/2 of accumulator capacity"
+  ],
+  correctOption: 1
+},
+{
+  question: "165.What constant charging voltage amplitude of nickel-cadmium accumulator is opted for:",
+  options: [
+    "1.65-1.7V per cell",
+    "3V per cell",
+    "0.8-1.2 A per cell"
+  ],
+  correctOption: 0
+},
+{
+  question: "166.Increase of temperature above accumulator nominal value given by the manufacturer has influence on:",
+  options: [
+    "Capacity",
+    "Number of cells",
+    "Accumulator lifespan"
+  ],
+  correctOption: 2
+},
+{
+  question: "167.Accumulator capacity is given by:",
+  options: [
+    "Accumulator voltage",
+    "Temperature",
+    "Overall charge the accumulator may emit during discharge"
+  ],
+  correctOption: 2
+},
+{
+  question: "168.When an accumulator is connected in series, the final voltage is given by:",
+  options: [
+    "Sum of currents of individual power sources",
+    "Sum of voltages of individual power sources",
+    "Difference of resistances of individual power sources"
+  ],
+  correctOption: 1
+},
+{
+  question: "169.Which accumulators may be connected in parallel:",
+  options: [
+    "Accumulators with the same nominal voltage",
+    "Accumulators with different internal resistance",
+    "Accumulators with different nominal voltage"
+  ],
+  correctOption: 1
+},
+{
+  question: "170.In case of connection of power sources in parallel, the final current is given by:",
+  options: [
+    "Difference of currents of individual power sources",
+    "Sum of currents of individual power sources",
+    "Sum of voltages of individual power sources"
+  ],
+  correctOption: 1
+},
+
+{
+  question: "171.Initial DC generator excitation is done using:",
+  options: [
+    "Permanent magnet",
+    "Residual magnetism in excitation windings",
+    "Stator winding"
+  ],
+  correctOption: 1
+},
+{
+  question: "172.Primary sources of DC section are:",
+  options: [
+    "Main, auxiliary, back-up, and emergency source",
+    "Main and emergency source",
+    "Back-up, auxiliary, and emergency source"
+  ],
+  correctOption: 0
+},
+{
+  question: "173.Secondary sources of DC section are:",
+  options: [
+    "Battery and rectifier",
+    "Rectifiers with output of alternating 28V",
+    "Batteries, rotational or stationary converters and rectifiers with direct output voltage of 28V"
+  ],
+  correctOption: 2
+},
+{
+  question: "174.Basic components of the aircraft electrical DC network are:",
+  options: [
+    "Power sources, regulations, line protection and electric power distribution, appliances",
+    "Line protection and distribution, appliances, bus bars",
+    "Power sources, appliances, bus bars"
+  ],
+  correctOption: 0
+},
+{
+  question: "175.Aircraft bus bars serve for:",
+  options: [
+    "Interconnection of power sources",
+    "Interconnection of loads",
+    "Protection of electric currents"
+  ],
+  correctOption: 1
+},
+{
+  question: "176.Loads are connected to aircraft bus bar:",
+  options: [
+    "In parallel, voltage is proportional to load",
+    "In parallel, voltage is not proportional to load",
+    "In series, voltage is not proportional to load"
+  ],
+  correctOption: 2
+},
+{
+  question: "177.What is the source of alternating current (AC):",
+  options: [
+    "Asynchronous two-phase generators",
+    "Dynamos",
+    "Synchronous three-phase generators with power of 10-90Kw"
+  ],
+  correctOption: 2
+},
+{
+  question: "178.Basic parts of the electric on-board network are:",
+  options: [
+    "Supply and distributing part",
+    "Distributing and protecting part",
+    "Supply and emergency part"
+  ],
+  correctOption: 0
+},
+{
+  question: "179.Alternating electric on-board networks are divided as per:",
+  options: [
+    "Number of phases, frequency, number of conductors, method of on-board energy distribution",
+    "Number of phases, frequency, energy distribution",
+    "Number of conductors and method of their distribution"
+  ],
+  correctOption: 0
+},
+{
+  question: "180.In order to increase the security of supply of important appliances, what is installed in the aircraft:",
+  options: [
+    "Circuit-breakers",
+    "Emergency bus bars",
+    "Relays"
+  ],
+  correctOption: 1
+},
+
+{
+  question: "181.Components of electric on-board network are:",
+  options: [
+    "Electric conductors, connections, interference suppression",
+    "Electric conductors, connections, control elements, protective devices, interference suppression",
+    "Electric conductors, connections, resistances, interference suppression, control, regulating apparatus"
+  ],
+  correctOption: 1
+},
+{
+  question: "182.In case of increasing load on direct generator, voltage controller:",
+  options: [
+    "Will decrease excitation voltage magnitude",
+    "Will not react",
+    "Will increase excitation voltage magnitude"
+  ],
+  correctOption: 2
+},
+{
+  question: "183.From the direct voltage generator, we obtain alternating voltage with a frequency of 400 Hz by means of:",
+  options: [
+    "Converter",
+    "Rectifier",
+    "Inverter"
+  ],
+  correctOption: 1
+},
+{
+  question: "184.The most common protection of aircraft electric circuits is:",
+  options: [
+    "Relay",
+    "Electrical fuse",
+    "Circuit breaker"
+  ],
+  correctOption: 2
+},
+{
+  question: "185.The most used frequency of aircraft AC section is:",
+  options: [
+    "400 Hz",
+    "400 V",
+    "115 Hz"
+  ],
+  correctOption: 0
+},
+{
+  question: "186.We obtain direct voltage from the electric alternating network with constant frequency by means of:",
+  options: [
+    "Voltage transformer",
+    "Rectifier",
+    "Generator with rectification"
+  ],
+  correctOption: 1
+},
+{
+  question: "187.Relay is:",
+  options: [
+    "Circuit-breaker",
+    "Switch meant for small aircraft",
+    "Electromagnetic switch"
+  ],
+  correctOption: 2
+},
+{
+  question: "188.Basic monitoring apparatuses of aircraft alternating current (AC) section are:",
+  options: [
+    "Voltmeter, vibration meter",
+    "Voltmeter, ampere-meter, frequency meter",
+    "Voltmeter"
+  ],
+  correctOption: 0
+},
+{
+  question: "189.Basic monitoring apparatuses of aircraft direct current (AC) section are:",
+  options: [
+    "Voltmeter, ampere-meter",
+    "Ampere-meter, frequency meter",
+    "Voltmeter"
+  ],
+  correctOption: 0
+},
+{
+  question: "190.Basic electricity networks used in airlines are:",
+  options: [
+    "Direct and alternating",
+    "Direct and switching",
+    "Alternating and connecting"
+  ],
+  correctOption: 0
+},
+{
+  question: "191.Voltage used in DC network is:",
+  options: [
+    "12V",
+    "28V",
+    "36V"
+  ],
+  correctOption: 1
+},
+{
+  question: "192.The most common AC voltage is:",
+  options: [
+    "36V",
+    "28V",
+    "115V"
+  ],
+  correctOption: 2
+},
+{
+  question: "193.AC generator is powered by:",
+  options: [
+    "Motor or APU",
+    "APU and thrust turbine generator",
+    "Inverter"
+  ],
+  correctOption: 0
+},
+{
+  question: "194.In case of AC generator disconnection, the generator may be reset and connected again:",
+  options: [
+    "On the ground with the engine running",
+    "During flight by generator control",
+    "On the ground, the engine must be turned off"
+  ],
+  correctOption: 2
+},
+{
+  question: "195.Ampere-meter serves for:",
+  options: [
+    "Voltage measurements, it is connected in parallel to the circuit",
+    "Voltage measurement, it is connected in series to the circuit",
+    "Voltage measurement, it is connected in parallel in the circuit"
+  ],
+  correctOption: 1
+},
+{
+  question: "196.Voltmeter serves for:",
+  options: [
+    "Measurement of voltage, it is connected in parallel to the measured element",
+    "Measurement of vibrations",
+    "Measurement of current, it is connected in series in the circuit"
+  ],
+  correctOption: 0
+},
+{
+  question: "197.For what purpose do emergency means serve for on-board of the aircraft:",
+  options: [
+    "To prevent human and material losses",
+    "To secure reliability",
+    "To secure safety"
+  ],
+  correctOption: 0
+},
+{
+  question: "198.What time is set for aircraft emergency leaving:",
+  options: [
+    "1.5 minutes",
+    "1 minute",
+    "2 minutes"
+  ],
+  correctOption: 0
+},
+
+
+{
+  question: "199.Requirements for emergency equipment of the aircraft are regulated by which of the following regulations:",
+  options: [
+    "FAR OPS 3",
+    "JAR OPS 1",
+    "L8"
+  ],
+  correctOption: 1
+},
+{
+  question: "200.What mandatory equipment is required on flights over big bodies of water:",
+  options: [
+    "Lifeboats for passengers",
+    "Emergency life jackets for all passengers on board",
+    "Emergency life jackets, lifeboats for all passengers on board"
+  ],
+  correctOption: 2
+},
+{
+  question: "201.Number of emergency exits in airliner cabin must correspond to which time that allows leaving all passengers and crew in case of emergency landing:",
+  options: [
+    "30 seconds",
+    "90 seconds",
+    "180 seconds"
+  ],
+  correctOption: 1
+},
+{
+  question: "202.Above-wing emergency exits are self-service and may be used for emergency exit:",
+  options: [
+    "Of passengers who are medically fit (except for children)",
+    "Of passengers and crew",
+    "Of crew only"
+  ],
+  correctOption: 0
+},
+{
+  question: "203.What mandatory equipment belongs to a lifeboat:",
+  options: [
+    "First-aid kits, parachutes, slides, devices for repairs, inflation and operation, desalting tablets",
+    "Devices for inflation, anchor, ropes, paddles, first-aid kit, device for sea water distillation, signal rockets, device for collection of rainwater",
+    "Emergency packages, emergency RDST, signal rockets, devices for inflation, operation and repairs, anchor, ropes, paddles, knife, flashlights, device for collection of rainwater, first-aid kit, desalting tablets, device for sea water distillation"
+  ],
+  correctOption: 2
+},
+{
+  question: "204.Seats are designed for what dynamic load:",
+  options: [
+    "16G",
+    "9G",
+    "5G"
+  ],
+  correctOption: 0
+},
+{
+  question: "205.What fastening belts must be used in training airliners:",
+  options: [
+    "Homologated for air traffic",
+    "Homologated for automotive traffic",
+    "Fastening belts produced by the given aircraft producer"
+  ],
+  correctOption: 1
+},
+{
+  question: "206.Seats in airliners are designed to meet requirements for:",
+  options: [
+    "Safety and comfort that are characteristic of the given aircraft type",
+    "Fire safety and economy that are characteristic of the given society",
+    "Non-flammable material and all above stated requirements"
+  ],
+  correctOption: 2
+},
+{
+  question: "207.Where side placement of seats (alongside cabin wall) is used?",
+  options: [
+    "In airliners",
+    "In military transport aircraft",
+    "In cargo aircraft"
+  ],
+  correctOption: 1
+},
+{
+  question: "208.In which direction must an aircraft fitted with seats for cabin crew members located at emergency exists on floor level be to improve evacuation:",
+  options: [
+    "Against the flight direction",
+    "Against the flight direction or in the line of flight up to 15° against aircraft longitudinal axis",
+    "With the possibility to rotate the seat to an angle ranging between 180°"
+  ],
+  correctOption: 1
+},
+{
+  question: "209.Aircraft must be fitted with multi-point safety belts with shoulder straps and single-point unfastening for:",
+  options: [
+    "All persons on board",
+    "Especially for passengers younger than 2 years old",
+    "Each member of flight crew"
+  ],
+  correctOption: 2
+},
+{
+  question: "210.When a passenger or parachutist sits sidewards to flight direction, s/he must have:",
+  options: [
+    "Fastening belts",
+    "No belts",
+    "Handles available"
+  ],
+  correctOption: 0
+},
+{
+  question: "211.According to what is space for aircraft passengers arranged:",
+  options: [
+    "Aircraft size",
+    "Number of passengers and flight time",
+    "Fuselage shape"
+  ],
+  correctOption: 1
+},
+{
+  question: "212.Where are showers, ventilation, lighting, and speakers located?",
+  options: [
+    "In channels at aircraft floor",
+    "In side cabin channels",
+    "In the area of non-head luggage hold"
+  ],
+  correctOption: 2
+},
+{
+  question: "213.Which exits are used for leaving the aircraft in case of an emergency:",
+  options: [
+    "All exits, including doors for entry and exit of crew and passengers",
+    "Only designed emergency exits, in case of landing on dry land doors for entry and exit may be used as well",
+    "Designed emergency exits"
+  ],
+  correctOption: 2
+},
+{
+  question: "214.Cabins of passengers and flight crew in airliners are separated by doors with the sign 'Crew Only' in case of the maximum approved configuration of:",
+  options: [
+    "Less than 19 seats",
+    "More than 19 seats",
+    "Any configuration"
+  ],
+  correctOption: 1
+},
+{
+  question: "215.Cabins of airliners are usually equipped with:",
+  options: [
+    "Doors for entry and exit of passengers",
+    "Doors for exit of flight crew which are used as emergency exits in case of a crash",
+    "Doors for exit of flight crew and passengers depending on the aircraft type. On principle, all aircraft doors should be available for using as emergency exits in case of a crash"
+  ],
+  correctOption: 2
+},
+
+
+{
+  question: "216.Where are luggage and cargo spaces located in airliners flying medium distances?",
+  options: [
+    "In passenger space",
+    "In front and back fuselage part under floors",
+    "Under seats"
+  ],
+  correctOption: 1
+},
+{
+  question: "217.How is passenger space separated and differentiated in the airliner fuselage so that it does not make a depressive impression?",
+  options: [
+    "By numbering of seats",
+    "By crosswise dividing walls with curtains, by colors of seat covers",
+    "By separating curtains"
+  ],
+  correctOption: 1
+},
+{
+  question: "218.For how many passengers are medium airliners designed?",
+  options: [
+    "10 - 30",
+    "100 - 200",
+    "30 - 100"
+  ],
+  correctOption: 2
+},
+{
+  question: "219.What demands are placed on pilot spaces?",
+  options: [
+    "Use of simple seat",
+    "Good view, layout of levers, appliances, access",
+    "Good glazing and transparency of pilot cabin windows"
+  ],
+  correctOption: 1
+},
+{
+  question: "220.Places in aircraft cabin meant for the entry of rescue teams are marked by which color?",
+  options: [
+    "Green, yellow that is on a white base to increase contrast",
+    "Red or yellow to increase contrast on a white base",
+    "Red or white to increase contrast on a yellow base"
+  ],
+  correctOption: 1
+},
+{
+  question: "221.What secures the functioning of toilet washrooms?",
+  options: [
+    "Waste storage tank",
+    "Water distribution system",
+    "Water and toilet systems"
+  ],
+  correctOption: 2
+},
+{
+  question: "222.During airliner operation, its cabin must be equipped with a universal device for opening any doors separating the emergency exit from the passengers area:",
+  options: [
+    "Yes",
+    "No",
+    "Only if it is not fully occupied by passengers"
+  ],
+  correctOption: 0
+},
+{
+  question: "223.First-aid sets must be part of the aircraft compulsory equipment and easily available in the following number:",
+  options: [
+    "3 sets for 200-299 passengers",
+    "3 sets for 300 and more passengers",
+    "3 sets for 100-199 passengers"
+  ],
+  correctOption: 0
+},
+{
+  question: "224.Passengers cabin equipment includes:",
+  options: [
+    "Portable manual fire extinguishers, portable oxygen devices, position beacon transmitter, life jackets",
+    "Portable manual fire extinguishers, portable oxygen devices, position beacon transmitter, life jackets, emergency axes",
+    "Survival kit, pocket flashlights, medical first-aid kits, firearm meant for the survival of passengers"
+  ],
+  correctOption: 0
+},
+
+
+{
+  question: "225.Flight data recorder for the ME aircraft category with a turbine engine and seats configuration for more than 9 passengers and weight lower than 5700kg must be able to record continuously for a duration of at least:",
+  options: [
+    "10 hours",
+    "25 hours",
+    "50 hours"
+  ],
+  correctOption: 1
+},
+
+{
+  question: '226.The "JAR-OPS1" regulation requires a new airliner to have, as part of compulsory equipment for aircraft with more than 1 pilot, installed on-board telephone system, which:',
+  options: [
+    'Must be equipped with light signaling system to catch attention, and it must have a determining device to recognize if it is a normal or emergency call',
+    'Must be equipped with sound or light signaling system to catch attention, and it must have a determining device to recognize if it is a normal or emergency call',
+    'Must be equipped with sound or light signaling system to catch attention, and it must have a determining device to recognize if it is a correspondence between ground personnel, Air Traffic Control, and pilots'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '227.The "JAR-OPS1" regulation requires a new airliner to have, as part of compulsory equipment for aircraft with more than 1 pilot, installed on-board telephone system, which:',
+  options: [
+    'Must be located in the pilot cabin and is easily accessible to crew member, especially near emergency exits',
+    'Must be easily accessible from any place in the pilot cabin and easily accessible to crew members in any area on-board',
+    'Must be easily accessible from any place in the pilot cabin and easily accessible to crew members especially near emergency exits'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '228.The "JAR-OPS1" regulation requires a new airliner to have, as part of compulsory equipment for aircraft with more than 1 pilot, installed on-board telephone system, which:',
+  options: [
+    'Works independently of on-board radio and enables mutual connection of the pilot cabin with other aircraft areas. It also has an interim system inbuilt to headphone sets and microphones (except for manual)',
+    'Works depending on on-board radio and enables mutual connection of the pilot cabin with other aircraft areas. It has an interim system inbuilt to headphone sets and microphones',
+    'Works independently on on-board radio and enables mutual connection of the pilot cabin with selected aircraft areas, which are, however, not inbuilt in headphone sets'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '229.In new airliners, equipping of flight data recorders in pilot cabin is mandatory, especially for the following flight configuration:',
+  options: [
+    'Multi-engine aircraft with turbine engines in configuration of more than 19 passengers and weight of 5700kg',
+    'Multi-engine aircraft with turbine engines in configuration of more than 9 passengers and weight less than 5700kg',
+    'Multi-engine aircraft with turbine engines in configuration of more than 9 passengers and weight over 5700kg'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '230.Pursuant to "JAR-OPS1", equipping aircraft with on-board radio is mandatory for flight configuration with the following number of passenger seats:',
+  options: [
+    'More than 9',
+    'More than 19',
+    'More than 30'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '231.What audio-visual devices are employed on-board of airliners:',
+  options: [
+    'Intercom between pilots and passengers',
+    'On-board radio, TV, audio receiver - controlled by passengers',
+    'On-board radio'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '232.On-board buffet usually includes:',
+  options: [
+    'Kitchen sink with outlet led outside of the aircraft, oven for heating of food, service water heater, thermally insulated container, coffee machine, and refrigerator',
+    'Kitchen sink with outlet led to waste tank inside the aircraft, oven for heating of food, drinking water heater, microwave oven, and refrigerator',
+    'Kitchen sink with outlet led outside of the aircraft, oven for heating of food, drinking water heater, coffee machine, and refrigerator'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '233Which equipment is not part of on-board buffet kitchen:',
+  options: [
+    'Vacuum bowl with drain pipes',
+    'Coffee machine, microwave oven, refrigerator, area for food and beverages',
+    'Drain pipes and water heaters'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '234.Handling of freight and its lifting to aircraft cargo is performed particularly using:',
+  options: [
+    'Hydraulic jack and pallet truck',
+    'Crane and conveyor',
+    'Forklift truck, conveyor belt'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '235.Cargo is handled inside the aircraft:',
+  options: [
+    'Manually',
+    'Solely using containers on roller travels',
+    'Combination of above'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '236.To what loads must attachment of cargo be dimensioned:',
+  options: [
+    'Flight loads',
+    'Emergency load of 9G',
+    'Landing load'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '237.From which is the device (in which cargo is transported) for attachment of cargo in cargo aircraft composed of:',
+  options: [
+    'Attaching nets',
+    'Transport containers',
+    'Roller track, lugs, standard containers'
+  ],
+  correctOption: 2
+},
+
+
+{
+  question: '238.How is the aircraft maximum landing weight defined:',
+  options: [
+    'The highest allowed aircraft landing weight is set by the manufacturer',
+    'The highest allowed aircraft landing weight depends on the type of take-off and landing runway and its length',
+    'The highest allowed aircraft landing weight with all fuel drain'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '239.What determines correct aircraft balancing on the ground:',
+  options: [
+    'Distribution of weight of transported cargo so that the center of gravity is located in the allowed c.g. position extent',
+    'Distribution of weight of transported cargo so excessive moment does not come about during the flight',
+    'Distribution of weight of transported cargo so that excessive forces in devices do not occur'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '240.If aircraft doors are not fitted with stairs for exit of passengers, what needs to be used to allow exit from the aircraft:',
+  options: [
+    'Mobile stairs or movable tunnel',
+    'Movable tunnel',
+    'Ladder'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '241.What serves for boarding aircraft in case of big airliners:',
+  options: [
+    'Boarding stairs',
+    'Mobile stairs of ground equipment, boarding tunnel',
+    'Separate stairs'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '242.Fire detection systems serve the crew for:',
+  options: [
+    'Locating and signaling fire on board',
+    'Locating and putting out fire on board',
+    'Putting out fire on board'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '243.What do we use to detect fire:',
+  options: [
+    'Sound and light signaling',
+    'Detection systems with thermistor continuous loops, ionization detectors, and optical detectors',
+    'Thermoelements, thermistor continuous loops, detection systems with thermal bimetallic or pressure sensors'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '244.The principle of bimetallic thermostatic switch resides in:',
+  options: [
+    'Connection of contacts located on tapes made of metal with different thermal expansion',
+    'Layer electric resistance decreases with increasing temperature, which thus acts in the function of thermal switch',
+    'Cylinder pressure has effect on membrane switch that switches on the signaling circuit switch at a certain pressure'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '245.Where can you find smoke detectors in aircraft:',
+  options: [
+    'In restrooms and luggage holds',
+    'In luggage holds and air conditioning system area',
+    'In restroom, pilot cabin, and main carriage shaft'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '246.Which fire-fighting systems are used in aircraft:',
+  options: [
+    'Fixed extinguishing sets permanently in-built in aircraft structure, and portable anti-fire means',
+    'Fixed extinguishing sets permanently in-built in aircraft structure, smoke detectors and overheating detection systems',
+    'Portable anti-fire means that are halon and water'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '247.Fire-fighting systems are triggered:',
+  options: [
+    'Manually or automatically as per signals from detection systems',
+    'Only manually after flight crew assesses the situation',
+    'Only automatically as per signals from detection systems'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '248.Zones with an increased risk of fire must:',
+  options: [
+    'Have more manual fire extinguishers as per the regulation JAR-OPS 1',
+    'Fill the area with extinguishing substance and thus create excess pressure that prevents air flow',
+    'Have passive anti-fire protection in-built directly into the structure by means of anti-fire walls'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '249.Additional reliability of the extinguishing system as a whole is secured by:',
+  options: [
+    'System of aircraft inspections and maintenance procedures that secures that failure of the whole system is very unlikely to happen in between service inspections and replacements',
+    'Testing that verifies complete functionality of the extinguishing system',
+    'Aircraft crew who must check the aircraft extinguishing system prior to flight'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '250.What do fire protection bulkheads separate?',
+  options: [
+    'Engine cold and hot spaces',
+    'Pressurized and non-pressurized spaces',
+    'Waterproof and sealed off spaces'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '251.What is used in a fire alarm that works on the resistant principle:',
+  options: [
+    'Helium',
+    'Eutectic salt',
+    'Halon'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '252.Fire loop using pressure principle is filled with:',
+  options: [
+    'Eutectic salt',
+    'Nitrogen',
+    'Inert gas'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '253.How is the inspection of fullness of fire extinguishers made?',
+  options: [
+    'Using pressure gauge',
+    'Using a mechanical gauge',
+    'Using water gauge'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '254.What is usually available for fire extinguishing of engines:',
+  options: [
+    'One dose of extinguishing medium',
+    'Three doses of extinguishing medium',
+    'Two doses of extinguishing medium'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '255.What is most commonly used as an extinguishing medium:',
+  options: [
+    'Freon',
+    'Halon',
+    'Nitrogen'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '256.What are extinguishing ramps used for?',
+  options: [
+    'For the supply of extinguishing gas to the engine',
+    'For the placement of extinguishing gas',
+    'For the supply of extinguishing gas under the external engine case'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '257.What secures control of bank (along the longitudinal axis):',
+  options: [
+    'Rudder',
+    'Winglets',
+    'Elevator'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '258.Flight spoilers in the capacity of rudders of lateral control deviate:',
+  options: [
+    'Only on one semi-wing',
+    'At once on both left and right semi-wing',
+    'They do not deviate'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '259.Crew may control repositioning of adjustable stabilizer:',
+  options: [
+    'Mechanically',
+    'Electrically',
+    'Both mechanically and electrically'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '260.When winglet on one semi-wing is deflected upwards, flight spoilers in the function of lateral control:',
+  options: [
+    'Deviate upwards',
+    'Deviate downwards',
+    'They do not deviate'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '261.What belongs to primary flight control:',
+  options: [
+    'Winglets, stabilizer, and rudder',
+    'Winglets, elevator, and rudder',
+    'Winglets, rudder, and flaps'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '262.The so-called Canard aircraft design has:',
+  options: [
+    'Always a delta wing',
+    'Elevator behind the aircraft center of gravity',
+    'Elevator before the aircraft center of gravity'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '263.In order to obtain the same effect, winglets are deflected:',
+  options: [
+    'At the same angle upwards and downwards',
+    'At a bigger angle downwards than upwards',
+    'At a bigger angle upwards than downwards'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '264.Lift may be increased by:',
+  options: [
+    'Bigger wing aspect ratio and wingspan',
+    'Increasing wing surface and engines thrust',
+    'Increasing profile curvature, influencing boundary layer, and increasing wing surface'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '265.Associated empennage (associated rudders) in comparison with the classic ones has:',
+  options: [
+    'Smaller aerodynamic drag, but reduced effectiveness',
+    'Bigger aerodynamic drag, but bigger effectiveness',
+    'More complicated control, but bigger effectiveness'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '266.Krueger flap is located:',
+  options: [
+    'On wing trailing edge',
+    'On wing trailing edge always at the fuselage',
+    'On wing leading edge'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '267.Fowler flap is:',
+  options: [
+    'A special type of spoiler located on the upper wing part',
+    'On wing leading edge',
+    'On wing trailing edge'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '268.Slat is:',
+  options: [
+    'On wing trailing edge always at the fuselage',
+    'On wing leading edge',
+    'On wing trailing edge'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '269.The principle of spoiler on wing resides in:',
+  options: [
+    'Acceleration of air flow and increasing of lift',
+    'Air flow breakoff and decreasing of lift',
+    'Increasing of profile curvature during landing and increasing of lift'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '270.When the spoiler is used simultaneously with winglet, what happens at the end of a wing:',
+  options: [
+    'Stress on wing structure caused by torsion is decreased',
+    'Stress on wing structure caused by torsion is increased',
+    'Winglet and spoiler may never work simultaneously because they would interfere with each other'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '271.What belongs to active lifting means:',
+  options: [
+    'Fowler flap',
+    'Automatic slats',
+    'Flaps blown upon by engine gases'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '272.Artificial feeling is used in which control systems:',
+  options: [
+    'In all control systems',
+    'Mechanically non-reciprocating, electric or optical transmission',
+    'Mechanically reciprocating'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '273.Rudder deviation size in big airliners depends on flight speed:',
+  options: [
+    'Yes',
+    'No',
+    'Yes, but only in case of supersonic speeds'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '274.Increasing of aerodynamic drag as an aerodynamic brake is used in the case of:',
+  options: [
+    'Krueger flap',
+    'Automatic slats',
+    'Spoilers'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '275.In order to achieve the reversal of thrust of propeller drive units, propeller blades are converted:',
+  options: [
+    'To negative gradient angle',
+    'To a small gradient angle',
+    'To feather'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '276.Which of the following has the biggest effectiveness as an aerodynamic brake in small speeds:',
+  options: [
+    'Brake parachute',
+    'Reverse thrust of jet engines',
+    'Spoilers'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '277.What is the function of the system for limitation of the emergence of a critical start-up angle:',
+  options: [
+    'Only cautionary',
+    'Only action',
+    'Cautionary and action'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '278.The Yaw damper system on the rudder:',
+  options: [
+    'Moves the rudder and winglets',
+    'Moves only the rudder',
+    'Moves the rudder and rudder control pedals'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '279.Flight spoilers may be in operation:',
+  options: [
+    'During flight and on the ground',
+    'Only during flight',
+    'Only on the ground'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '280.In case of exceeding the allowed flight speed with flaps at 40°:',
+  options: [
+    'Flaps will deploy to position at 60°',
+    'Flaps will fully retract to position at 0°',
+    'Flaps will automatically retract to position at 30°'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '281.If aircraft is statically unstable, control is always:',
+  options: [
+    'Hydraulic (indirect)-mechanical',
+    'Electrical with feedback on rudders position',
+    'FLY BY WIRE'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '282.FLY BY WIRE and control with electric control with electric-hydraulic drives with feedback to rudders position:',
+  options: [
+    'Is the same',
+    'FLY BY WIRE does not use hydraulic drives',
+    'FLY BY WIRE uses aircraft response as feedback'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '283.Active control refers to each aircraft control system that uses:',
+  options: [
+    'Autopilot for flight on a pre-set trajectory',
+    'Hydraulic boosters with feedback to the pilot',
+    'FLY BY WIRE electronic system'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '284.In case of asymmetry of flaps during deploying or retracting:',
+  options: [
+    'Flaps will stop in a selected position',
+    'Flaps will stop in a position during which asymmetry was discovered',
+    'Flaps will retract'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '285.Where do the spoilers move in case of malfunction:',
+  options: [
+    'Fully retracted position',
+    'Fully deployed position',
+    'They will remain in the position during which the malfunction occurred'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '286.Where is fuel usually stored in the aircraft:',
+  options: [
+    'In central wing, wings, auxiliary fuel tanks at the end of wings, underslung auxiliary fuel tanks, auxiliary fuel containers, balancing tanks',
+    'In central wing, wings, underslung auxiliary fuel tanks, auxiliary fuel containers, balancing tanks, and ventilation tanks',
+    'Exclusively in tanks located in central wing, wings, and auxiliary tanks at the end of wings'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '287.Ventilation tanks at the end of wings in big airliners serve for:',
+  options: [
+    'Supplying fuel for long-haul flights',
+    'Filling of fuel, they contain filling openings',
+    'Compensating fuel thermal expansion'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '288.Heating of fuel is usually secured by:',
+  options: [
+    'Outer fuel system',
+    'Internal fuel system',
+    'Hydraulic system'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '289.Fuel system of airliners is, due to safety reasons, designed in a way so that:',
+  options: [
+    'It is not possible to draw contaminated fuel from one group of tanks to another',
+    'It is possible to draw fuel from one group of tanks to another',
+    'Fuel automatically flows to the lowest point of the fuel system where the pump is located'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '290.After emptying outer auxiliary fuel tanks, which serve for increasing flight range, they:',
+  options: [
+    'Must always be jettisoned because they put up a big resistance',
+    'Are never jettisoned due to their high price, plus there is a risk of damage after their fall',
+    'May be jettisoned'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '291.Auxiliary fuel tanks of airliners which serve for increasing flight range:',
+  options: [
+    'Are never used for safety reasons',
+    'May be used to the detriment of luggage holds',
+    'Ventilation tanks are used as auxiliary tanks in such a case'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '292.Integral fuel tanks:',
+  options: [
+    'Are tanks that are an integral part of the aircraft structure',
+    'Are rubber tanks integrated into the aircraft free space',
+    'Are auxiliary tanks of big airliners'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '293.The amount of fuel in the tank is not displayed by:',
+  options: [
+    'Capacitive fuel gauge',
+    'Consumption gauge',
+    'Mechanical pointer'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '294.Flexible fuel piping is used:',
+  options: [
+    'Only for petrol distribution',
+    'Only for the distribution of fuel on the basis of kerosene',
+    'To connect vibrating or mutually moving parts'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '295.High-pressure motor fuel pump is usually powered by:',
+  options: [
+    'Electric motor',
+    'Directly by the drive unit',
+    'Electronically'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '296.Transport fuel pump is usually powered by:',
+  options: [
+    'Electric motor',
+    'Directly by the drive unit',
+    'Electronically'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '297.Fuel filter is in the fuel system always placed:',
+  options: [
+    'Before the pump so that impurities do not damage the pump',
+    'Behind the pump',
+    'Due to high demands on fuel purity before and behind the pump'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '298.To suck fuel residues from a tank using jet pumps, the following is used:',
+  options: [
+    'High-speed electric motor',
+    'Drive from the working motor',
+    'Suction from the flowing fuel'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '299.Fire stopcock is controlled by:',
+  options: [
+    'Mechanic directly on the engine',
+    'From the passenger cabin',
+    'From the crew cabin or passenger cabin so that stewards may control it in case of fire'
+  ],
+  correctOption: 1
+},
+
+
+{
+  question: '300.During pressure fuel filling to modern airliners with FMS:',
+  options: [
+    'It is necessary to always fill all tanks fully',
+    'It is possible to fill only the required volume of fuel, but regardless of the current balance in tanks',
+    'It is possible to fill the required final volume of fuel'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '301.Which of the following examples belongs to the outer fuel system?',
+  options: [
+    'Fuel system outside the engine',
+    'Pressurized fuel filling to the aircraft',
+    'Fuel system on the engine'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '302.May aircraft tanks be designed from vacuum valve sheet metal?',
+  options: [
+    'Only with anticorrosive protection',
+    'No',
+    'Yes'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '303.What fuel tanks, as per structure and design, do you know?',
+  options: [
+    'Metal, rubber, integral',
+    'Wing, fuselage, tail',
+    'Pressure, pressurized, underpressure'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '304.Fuel supply collector to the aircraft fuel system is:',
+  options: [
+    'Pipage that conducts waste fuel from the engine',
+    'Pipage that conducts redundant fuel back to the tank',
+    'Fuel pipage with branching, through which fuel is led to individual fuel nozzles'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '305.Outer aircraft fuel system is:',
+  options: [
+    'Part of the fuel system outside the engine',
+    'Device that secures fuel injection to the suction pipage or combustion chambers',
+    'Part of the fuel system on the engine'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '306.Internal aircraft fuel system is:',
+  options: [
+    'Part of the fuel system outside the engine',
+    'Part of the fuel system located in the aircraft airframe',
+    'Part of the fuel system on the engine'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '307.Draining and emptying fuel from the aircraft is required:',
+  options: [
+    'Always to reduce landing weight before landing',
+    'To perform aircraft ground maintenance and during in-flight emergency situations',
+    'Especially during filling of the aircraft on the ground and during in-flight emergency situations'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '308.Waste fuel pipage in the aircraft fuel system is:',
+  options: [
+    'Pipage that conducts air and vapours from the fuel system away',
+    'Pipage that conducts excessive fuel back to the tank or to the suction branch of the fuel system',
+    'Pipage that conducts waste fuel away from the engine'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '309.What is the disadvantage of filling airliners from below (pressure filling):',
+  options: [
+    'Special device for filling with which the airport must be equipped',
+    'Bad access to the filling socket under the aircraft',
+    'Big loss of fuel when disconnecting the filling hose'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '310.Filling of airliners is usually carried out:',
+  options: [
+    'By gravity using float stop valves',
+    'From the bottom, under pressure, using the reverse stop valve',
+    'From the bottom, under pressure, using float sensors and stop valves'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '311.Within fuel systems, the airliner may be longitudinally balanced out by means of:',
+  options: [
+    'Special tank located inside the stabilizer',
+    'Special tank located in the area of the aircraft nose',
+    'Special fuel container located at an adequate distance behind the aircraft center of gravity'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '312.Hydraulic systems of big airliners are designed as:',
+  options: [
+    'Double-circuit with mutual backup',
+    'Three-circuit with mutual backup',
+    'Three-circuit where only one system is a backup with interconnection to one of the remaining two circuits'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '313.Operational pressure in hydraulic systems of big airliners is usually:',
+  options: [
+    '900 psi',
+    '3000 psi',
+    '4000 psi'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '314.Hydraulic fluid produced on the mineral basis:',
+  options: [
+    'Is always yellow',
+    'Is always blue',
+    'Is always red'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '315.Synthetic hydraulic fluids are colored in:',
+  options: ['Yellow', 'Purple', 'Red'],
+  correctOption: 1
+},
+
+{
+  question: '316.Pressureless tanks for hydraulic fluid are limited by what height on the input due to cavitation:',
+  options: ['12,000 ft', '15,000 ft', '18,000 ft'],
+  correctOption: 2
+},
+
+{
+  question: '317.Hydraulic accumulators are:',
+  options: [
+    'Pressureless vessels with emergency reserve of hydraulic fluid',
+    'Vessels filled by pressure hydraulic fluid in their whole volume',
+    'Vessels partially filled with hydraulic fluid and compressed gas'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '318.What does not belong to the main hydraulic pressure circuit:',
+  options: ['Check valve', 'Filter', 'Operating hydraulic cylinder'],
+  correctOption: 2
+},
+
+{
+  question: '319.What does not belong to the main hydraulic pressure circuit:',
+  options: ['Hydraulic lock', 'Filter', 'Operating hydraulic cylinder'],
+  correctOption: 1
+},
+
+{
+  question: '320.What valves serve for securing against back-pressure in the hydraulic system:',
+  options: ['Safety valves', 'One-way valves', 'Reduction valves'],
+  correctOption: 1
+},
+
+{
+  question: '321.Hydraulic power-assisted steering (booster) operates as:',
+  options: [
+    'Single-acting hydraulic cylinder with reciprocating spring-actuated mechanism controlled by the pilot',
+    'Double-acting hydraulic cylinder with slide-valve distributions – controlled by the pilot',
+    'Double-acting hydraulic cylinder with a reciprocating spring-actuated mechanism controlled by the pilot'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '322.Viscosity in fluids means:',
+  options: [
+    'Resistance of fluid against evaporation at high temperatures',
+    'Resistance of fluid against compressibility = does not change volume',
+    'Liquidness depending on the internal friction of molecules'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '323.Impacts caused by the flowing of hydraulic fluid in system pipage:',
+  options: ['Are insignificant and thus are not addressed', 'Are absorbed by one-way valves appropriately distributed in the system', 'Are dampened by hydraulic accumulators'],
+  correctOption: 2
+},
+
+{
+  question: '324.Once the filter is plugged by impurities:',
+  options: [
+    'Circuit is put out, and operation is taken over by the backup system',
+    'Bypass valve opens due to an increase in pressure that is part of the filter, and pressure fluid flows to the system without being cleaned',
+    'Pressure before the filter progressively increases, which secures at least minimum filter permeableness'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '325.In case of zero consumption of fluid by appliances and a drop in driving engine revolutions, the gear hydraulic pump:',
+  options: [
+    'Supplies the same amount of fluid with lower pressure to the hydraulic system',
+    'Supplies a smaller amount of fluid with the same pressure to the hydraulic system',
+    'Neither pressure nor volume of fluid change'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '326.Requirements for the temperature range of hydraulic fluid in modern aircraft are:',
+  options: ['−20°C to +210°C', '−60°C to +85°C', '−80°C to +85°C'],
+  correctOption: 1
+},
+
+{
+  question: '327.Pascal\'s law, which is used in hydraulic systems, reads:',
+  options: [
+    'Increase in liquid volume with increasing temperature is constant',
+    'Pressure change occurring in the fluid is transmitted throughout the fluid such that the same change occurs everywhere',
+    'Fluid cannot be compressed, and that is why it is ideal for the transmission of pressure'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '328.Which of the following does not belong to the basic elements of the hydraulic pressure circuit:',
+  options: ['Safety valve', 'Hydraulic booster', 'Hydraulic accumulator'],
+  correctOption: 0
+},
+
+{
+  question: '329.The general principle of operation of the hydraulic system Power Transfer Unit (PTU) resides in:',
+  options: [
+    'In case of leakage of hydraulic fluid from one system (A or B), hydraulic fluid is automatically refilled from another system',
+    'In case pressure drops in one system due to too big consumption of pressure by operating hydraulic aggregates, pressure is drawn from another system, by which a critical pressure drop in the operating system is prevented, and thus pressures of both systems balance out',
+    'Hydraulically propelled pump with one system automatically balances the pressure drop in another hydraulic system without mutual mixing of hydraulic fluids from both systems'
+  ],
+  correctOption: 2
+},
+
+
+{
+  question: '330.Synthetic and mineral hydraulic fluid:',
+  options: ['May be mixed in any ratio', 'May be mixed in a way so that there is always more than 50% of synthetic fluid', 'May not be mixed'],
+  correctOption: 2
+},
+
+{
+  question: '331.To prevent the creation of cavitation in the hydraulic system of an aircraft flying at an altitude exceeding 5000m:',
+  options: [
+    'It is necessary to use only synthetic hydraulic fluid',
+    'Hydraulic system is cooled in exchangers which are located in wing fuel tanks',
+    'Hydraulic tanks are overpressurized by compressed air'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '332.Hydraulic tanks of big airlines are usually:',
+  options: ['Underpressure', 'Overpressure', 'Atmospheric'],
+  correctOption: 1
+},
+
+{
+  question: '333During the stabilized operation of the hydraulic system, the pressure of gas in the cylindrical hydraulic accumulator is:',
+  options: ['Higher than the pressure of hydraulic fluid', 'Same as the pressure of hydraulic fluid', 'Lower than the pressure of hydraulic fluid'],
+  correctOption: 1
+},
+
+{
+  question: '334.Which physical properties must be taken into consideration in the case of hydraulic fluids:',
+  options: [
+    'Density, viscosity, specific heat capacity, pressure of vapours, conductivity, compressibility, flow velocity',
+    'Density, viscosity, specific heat capacity, operational pressure, flow velocity',
+    'Density, viscosity, specific heat capacity, operational pressure, conductivity, compressibility, flow velocity'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '335.What pump is most commonly used in the hydraulic system of airliners:',
+  options: ['Rotary piston pump with variable supply', 'Gear pump with constant pressure', 'Centrifugal pump with constant volume of pressure fluid'],
+  correctOption: 1
+},
+
+{
+  question: '336.Hydraulic accumulator serves for:',
+  options: [
+    'Balancing of decrease and increase in hydraulic fluid volume caused by change of its temperature',
+    'Balancing of pressure energy drops, dampening of hydraulic impacts',
+    'Continuous supply of pressure to the system by means of compressed nitrogen, it also functions as a cooler'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '337.Emergency hydraulic circuit may be powered:',
+  options: ['Manually, by means of electricity, mechanically', 'By a hydraulic accumulator or manually', 'By the hydraulic motor of the main hydraulic circuit or manually'],
+  correctOption: 1
+},
+
+{
+  question: '338.In the main circuit, a reduction valve is used where we require:',
+  options: ['Increased volume rate of flow', 'Decrease of pressure', 'Increase of pressure'],
+  correctOption: 2
+},
+
+{
+  question: '339.Hydraulic lock:',
+  options: [
+    'Must prevent piston shift in operating valve',
+    'Must prevent discharge of fluid from the tank when disconnecting pipage',
+    'Must prevent starting of the pump in case of a shortage of fluid'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '340.Hydraulic lock is:',
+  options: [
+    'An actuated check valve controlled by fluid pressure from another circuit',
+    'An automatic valve separating individual hydraulic circuits',
+    'A valve securing reverse flow of hydraulic fluid to the tank in case of pressure increase'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '341.What does not belong to the aircraft hydraulic system operating circuit:',
+  options: ['Check valve', 'Hydraulic lock', 'Hydraulic pump'],
+  correctOption: 2
+},
+
+{
+  question: '342.Setting of the required position of power elements in the hydraulic system of the airliner control is usually done via:',
+  options: ['Electromagnet', 'Slide valve', 'Selsyn'],
+  correctOption: 1
+},
+
+{
+  question: '343.What is the advantage of using the hydraulic system in comparison to the pneumatic system:',
+  options: [
+    'Lower system weight which is crucial for aircraft construction',
+    'Accurate fixation of controlled elements in the required position, which is crucial for control',
+    'Bigger safety from the point of view of possible leakage, which is crucial for operation'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '344.Airliner hydraulic system operational pressure is indicated in:',
+  options: ['PSI', 'PSA', 'IPS'],
+  correctOption: 0
+},
+
+{
+  question: '345.Ice formation affects the most:',
+  options: ['Weight and c.g. positions', 'Aircraft lift and drag', 'Hydraulic and electric systems'],
+  correctOption: 1
+},
+
+{
+  question: '346.Ice formation emerges:',
+  options: [
+    'During flight in fog, clouds, and precipitation of negative temperature',
+    'During flight in fog, clouds, and precipitation of positive temperature',
+    'In high altitudes'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '347.The most dangerous form of ice is:',
+  options: ['Matte ice', 'Hoar frost', 'White granular ice'],
+  correctOption: 2
+},
+
+{
+  question: '348.Pitot and static probes are heated by:',
+  options: ['Hot air', 'Electrically and chemically', 'Electrically'],
+  correctOption: 2
+},
+
+{
+  question: '349.Systems against ice formation are:',
+  options: ['Electric, hot-air, frequency', 'Electric, hydraulic, mechanic', 'Electric, hot-air, chemical'],
+  correctOption: 2
+},
+
+{
+  question: '350.Protection means against rain are:',
+  options: [
+    'Wipers, chemical-based rain repellents, and draught',
+    'Wipers, washers using liquid preventing drops formation',
+    'Wipers, electric heating of windscreens'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '351.Pneumatic-mechanical removal of ice is used to:',
+  options: [
+    'Defrost leading edges of wings and tail assemblies',
+    'Defrost propellers and tail assemblies',
+    'It is not used at all'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '352.Hot air against ice formation is used for:',
+  options: [
+    'Leading edges of wings, leading edges of tail assemblies, and input engine sockets',
+    'Input engine sockets, heating of pilot cabin windows and air sensors',
+    'Leading edges of wings, leading edges of tail assemblies, and defrosting of drainages'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '353.Correct pressure and the amount of fluid in the aircraft undercarriage shock absorber are in operation usually controlled by:',
+  options: ['Pressure gauge', 'Centimeter', 'Pressure value is evaluated by aircraft computer'],
+  correctOption: 2
+},
+
+{
+  question: '354.Aircraft telescopic undercarriage shock absorber is always filled with:',
+  options: [
+    'Only compressed nitrogen',
+    'Liquid and gas, while the liquid serves as a spring-loaded element and the gas absorbs piston movement',
+    'Liquid and gas, while the gas serves as a spring-loaded element and the liquid absorbs piston movement'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '355.Sequential cylinders of the hydraulic system of undercarriage lowering:',
+  options: [
+    'Are cylinders of the emergency operating circuit',
+    'Are additional cylinders that operate only when retracting the undercarriage in the required direction against air current',
+    'Are cylinders of the hydraulic system for opening and closing doors of the undercarriage shaft in the required order'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '356.Nosewheel undercarriage has the main undercarriage located:',
+  options: ['Before the center of gravity', 'In the center of gravity', 'Behind the center of gravity'],
+  correctOption: 2
+},
+
+
+{
+  question: '357.What does not belong to the main hydraulic pressure circuit:',
+  options: ['Check valve', 'Filter', 'Operating hydraulic cylinder'],
+  correctOption: 1
+},
+
+{
+  question: '358.Brakes of big airliners are:',
+  options: ['Caliper-drum brakes', 'Disc brakes', 'Lamellar brakes'],
+  correctOption: 1
+},
+
+{
+  question: '359.If the pilot uses foot brakes in automatic braking mode:',
+  options: [
+    'S/he will this way increase pressure in the hydraulic system and brakes will brake more intensively',
+    'The system that creates higher pressure will brake. After releasing foot brakes, only automatic brakes will continue braking',
+    'S/he will put automatic brakes out of operation'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '360.Aircraft tires for operation on grassy non-paved airports are:',
+  options: ['High-pressure', 'Low-pressure', 'Filled with special foam so that air does not leak in case of puncture'],
+  correctOption: 1
+},
+
+{
+  question: '361.In the course of braking and blocking of the aircraft wheel on a slippery surface, the antiskid system:',
+  options: [
+    'Increases pressure in the brake of this wheel so that the aircraft slows down in any case',
+    'Reduces pressure in the brake of this wheel so that the wheel starts rotating',
+    'The antiskid system is automatically put out of operation, while the pilot must brake'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '362.Undercarriage with tailskid has the main undercarriage located:',
+  options: ['Before the center of gravity', 'In the center of gravity', 'Behind the center of gravity'],
+  correctOption: 0
+},
+
+{
+  question: '363.If the pilot increases engine revolutions in automatic braking mode:',
+  options: [
+    'S/he will this way increase pressure in the hydraulic system and brakes will brake more intensively',
+    'These two systems do not cooperate, so nothing will change',
+    'S/he will put automatic brakes out of operation'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '364.Front wheel angle of rotation (control) of big airliners depends:',
+  options: [
+    'Only on the angle of disengaging pedals of foot control without any influence on aircraft speed',
+    'On aircraft taxi speed; small speed = big angle, big speed = small angle',
+    'Angle of rotation is evaluated by aircraft computer depending on the side wind force'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '365.Antiskid aircraft systems brake wheels:',
+  options: [
+    'Automatically before touchdown to ease the pilot\'s activity during landing',
+    'During the engagement of undercarriage load switch',
+    'During the engagement of undercarriage load switch and spinning of the wheel'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '366.Where and why is SHIMMY damper used?',
+  options: [
+    'In the hydraulic system to dampen hydraulic impacts of hydraulic fluid',
+    'At the main undercarriage, it dampens stop to end position during retracting',
+    'At the front undercarriage leg, it dampens side vibration of wheels during aircraft start and landing'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '367.What are the disadvantages of undercarriage lever damper in comparison with telescopic undercarriage damper?',
+  options: [
+    'Undercarriage with lever damper has a bigger resistance',
+    'Undercarriage with telescopic damper has a bigger weight',
+    'Undercarriage with telescopic damper attains smaller compression'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '368. is the advantage of aircraft configuration with nose undercarriage?',
+  options: [
+    'Better view from the pilots\' cabin',
+    'Better lift effectiveness during take-off run',
+    'Smaller undercarriage weight'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '369.What is the so-called undercarriage SHIMMY?',
+  options: [
+    'Bending-torsion deformation on the nose undercarriage',
+    'Bending straining of undercarriage legs',
+    'Undercarriage strut'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '370.What are the advantages of undercarriage telescopic damper in comparison with lever damper?',
+  options: [
+    'It is more compact with telescopic damper and thus has a smaller weight',
+    'Undercarriage with telescopic damper better resists side force',
+    'Undercarriage with telescopic damper attains smaller compression'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '371.What are the advantages of telescopic undercarriage?',
+  options: [
+    'Small weight and good utilization of undercarriage leg for damper placement',
+    'Structure is more compact, torque scissors are not necessary',
+    'Small resistance and unlimited damper elevation'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '372.Lever undercarriage with damper outside the main undercarriage leg has these significant advantages:',
+  options: [
+    'Good damper impermeability and good dampening of horizontal impacts',
+    'Compact construction, small weight',
+    'Small resistance and good impermeability'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '373.What is the order of effectiveness of undercarriage dampers with upward tendency?',
+  options: [
+    'Rubber, ring, hydropneumatic, hydraulic',
+    'Rubber, hydraulic, rubber, hydropneumatic',
+    'Ring, rubber, hydraulic, hydropneumatic'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '374.Division of structures of landing mechanisms:',
+  options: [
+    'Telescopic and lever undercarriages',
+    'Springed, float and level undercarriages, undercarriage as a boat and undercarriage with a ski',
+    'Springed, telescopic, float and level undercarriages, undercarriage as a boat and undercarriage with a ski'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '375.Shimmy is:',
+  options: [
+    'Always a damper located on the main undercarriage',
+    'Damper suppressing side vibration of the castor wheel',
+    'Damper dampening undercarriage vibrations caused by braking'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '376.When do the so-called "shimmy" vibrations emerge on undercarriage?',
+  options: [
+    'Once frictional forces exceed elastic and inertia forces, and this malfunction increases',
+    'If aeroelastic forces exceed inertia forces and this malfunction is not dampened in time',
+    'When the dampening force of elastic and inertia forces is exceeded during touchdown after landing'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '377.What is the advantage of tail undercarriage?',
+  options: [
+    'Smaller aerodynamic drag, but reduced effectiveness',
+    'Small aircraft structure load',
+    'Smaller undercarriage weight'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '378.What system secures undercarriage lowering in common airliners?',
+  options: ['Hydraulic system', 'Pneumatic system', 'Electric system'],
+  correctOption: 0
+},
+
+{
+  question: '379.If a warning signal is heard in the pilot cabin during undercarriage opening, what can we expect to see on the undercarriage lowering indicator:',
+  options: [
+    'A combination of green and red lights, or shining red lights only',
+    'Only shining green lights',
+    'In case of a malfunction of the landing device warning system, blue lights will shine together with green lights'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '380.What is the disadvantage of caliper brakes?',
+  options: [
+    'Bad carrying-off heat and uneven wear and tear of calipers',
+    'ABS may not be used',
+    'Complex production and assembly'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '381.Choose the correct statement about disc brakes:',
+  options: [
+    'Disc brakes withstand a bigger load than chamber brakes',
+    'Disc brakes are unevenly cooled',
+    'The braking principle is inflation of a rope with a lining that is pushed to drum lining'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '382.As per structure, we divide aircraft undercarriages into:',
+  options: [
+    'Caliper, chamber, chamberless',
+    'Caliper, chamber, disc, multi-plate',
+    'Caliper, disc, multi-plate'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '383.For which aircraft are caliper brakes the most suitable?',
+  options: [
+    'Small aircraft with a tail undercarriage',
+    'Transportation aircraft of the STOL category',
+    'Aircraft operated on grassy airports'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '384.What does the anti-lock system serve for on the undercarriage?',
+  options: [
+    'Prevents skid in case of bigger aircraft deceleration during braking',
+    'Strengthens control systems in case of ice formation on the landing runway',
+    'Automatically turns wheels in case of bigger speeds of side wind'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '385.To what pressure will low-pressure tires be inflated?',
+  options: [
+    '0.2 - 0.4 MPa',
+    '0.4 - 0.6 MPa',
+    '0.6 - 0.8 MPa'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '386.For what environment are low-pressure tires suitable?',
+  options: [
+    'Grassy and stony airports',
+    'Airports with bad adhesion properties',
+    'Environments with high relative air humidity'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '387.Aircraft tires are distinguished by:',
+  options: [
+    'Inflation pressure',
+    'Method of heat load during braking',
+    'Material they are made of'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '388.Steering control of the nose airliner undercarriage during taxi is carried out via:',
+  options: [
+    'Pedals',
+    'Separate control',
+    'Steering wheel - yokes'
+  ],
+  correctOption: 2
+},
+
+{
+  question: '389.Where are position lamps located?',
+  options: [
+    'On wing ends and aircraft tail',
+    'On wing ends',
+    'On the upper and lower fuselage part'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '390.Collision avoidance beacon must have what color:',
+  options: [
+    'Red',
+    'Green-red and green',
+    'Atmospheric'
+  ],
+  correctOption: 0
+},
+
+{
+  question: '391.Back positional light must be:',
+  options: ['White', 'Red', 'White or red'],
+  correctOption: 2
+},
+
+{
+  question: '392.Taxi headlight of big airliners is placed:',
+  options: [
+    'In a movable way on aircraft wing structure',
+    'Firmly to front aircraft fuselage part, for lighting of surrounding VPD areas and taxiways, directional spotlight "Turn-Off-light" is on aircraft fuselage',
+    'In a movable way on aircraft nose undercarriage structure or on fuselage'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '393.In up-to-date airliners, internal passenger cabin lighting is usually carried out in what way:',
+  options: ['By means of fluorescent tubes or light bulbs', 'Light bulbs with sodium-vapour lamps', 'Neon tubes'],
+  correctOption: 0
+},
+
+{
+  question: '394.Lighting of apparatuses:',
+  options: ['May have intensity regulation', 'Must have intensity regulation', 'Must not have intensity regulation'],
+  correctOption: 0
+},
+
+{
+  question: '395.Marking of escape routes inside airliners is carried out by lights:',
+  options: [
+    'Directed to the aircraft fuselage centre only in the front part',
+    'Directed to the aisle centre between rows of seats',
+    'Directed along the whole length on fuselage walls'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '396.Emergency lighting must be switched on:',
+  options: ['Manually from the crew station or automatically', 'Only automatically', 'Only manually from the crew station'],
+  correctOption: 0
+},
+
+{
+  question: '397.What height above sea level is the human organism capable of withstanding without air conditioning:',
+  options: ['3,000m', '4,000m', '5,000m'],
+  correctOption: 0
+},
+
+{
+  question: '398.Emergency supply of oxygen to passengers must be secured:',
+  options: ['During the whole flight', 'For planned half of the flight', 'For approximately 12 minutes'],
+  correctOption: 2
+},
+
+{
+  question: '399.Oxygen masks for pilots and passengers:',
+  options: [
+    'Work on the same principle, but it differs in attaching to the head because the pilot needs to have his/her hands free',
+    'Pilots have interrupted oxygen supply and passengers permanent oxygen supply',
+    'They are completely the same'
+  ],
+  correctOption: 1
+},
+
+{
+  question: '400.In airliners, oxygen for crew is usually taken from:',
+  options: ['Cylinders', 'Chemical generators', 'From OBOGS systems'],
+  correctOption: 2
+},
+
+{
+  question: "401.Offtake point at the pilot's seat is supplied with oxygen from:",
+  options: ["Regenerative device", "Built-up cylinder filled with medical oxygen", "Chemical oxygen generator"],
+  correctOption: 1
+},
+
+{
+  question: "402.Inspection of aircraft oxygen equipment is carried out:",
+  options: [
+    "Especially in the gaseous oxygen filling room",
+    "By the pilot or mechanic by way of inspection of the pressure gauge on the portable cylinder",
+    "By the pilot who evaluates data about the stationary system pressure in the pilot's cabin"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "403.Dangerous altitude alarm is usually part of the aircraft altitudinal system, and it is:",
+  options: [
+    "A device indicating correct functioning of the aircraft oxygen ventilator",
+    "Pressure gauge informing on high-pressure system oxygen pressure. Oxygen reserve in the aircraft is assessed as per this alarm.",
+    "A device warning about altitude, by lighting and acoustic, from which it is necessary to use an oxygen respirator."
+  ],
+  correctOption: 2
+},
+
+{
+  question: "404.What does the oxygen system indicator in the pilot's cabin mounted on the oxygen system reduction valve output indicate?",
+  options: [
+    "Oxygen pressure for pilot and passengers",
+    "Air pressure in breathing apparatus",
+    "Pressure of oxygen mixture with air for pilot and passengers"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "405.Purpose of pneumatic system is:",
+  options: [
+    "To deliver compressed air for fuselage pressurisation system",
+    "To deliver compressed air to aircraft user systems",
+    "To deliver compressed air for aircraft brake system"
+  ],
+  correctOption: 1
+},
+
+{
+  question: "406.Pneumatic system of an aircraft propelled by two turbine engines is composed of:",
+  options: [
+    "System of air consumption from auxiliary drive unit, pressure regulation system, and distribution piping to individual user systems",
+    "Systems of compressed air storage, distribution piping, pressure regulation system, and force elements of user systems",
+    "Systems of air offtake from engines, the system of air offtake from APU, interconnecting valve of system left and right side, and connecting pipage, and distribution pipage to individual user systems"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "407.Air offtake from turbine engine for pneumatic system needs is executed:",
+  options: [
+    "From high-pressure compressor",
+    "From low-pressure compressor",
+    "Behind blower"
+  ],
+  correctOption: 1
+},
+
+{
+  question: "408.Primary sources of compressed air for aircraft pneumatic system with turbine engines are:",
+  options: [
+    "Compressed air accumulators",
+    "Compressors powered from cabinet by means of auxiliary engines drives",
+    "Engines compressors"
+  ],
+  correctOption: 2
+},
+
+{
+  question: "409.Sources of compressed air for aircraft pneumatic system with turbine engines are:",
+  options: [
+    "Compressed air accumulators refilled from auxiliary drive unit compressor",
+    "Main aircraft engines, auxiliary drive unit, and ground (external) course of compressed air",
+    "Main engines compressors and auxiliary drive units"
+  ],
+  correctOption: 1
+},
+
+{
+  question: "410.Aircraft pneumatic system air pressure regulation drawn from turbine engine compressor:",
+  options: [
+    "Is carried out by regulation valve located in aircraft pneumatic system",
+    "Is carried out by regulation valve in air offtake system from engine",
+    "Is determined by pressure of air drawn from compressor at given engine revolutions"
+  ],
+  correctOption: 1
+},
+
+{
+  question: "411.In case of pressure drop in the pneumatic system before the reduction valve by the set reduction valve value:",
+  options: ["Pressure will be the same before and after the valve", "Pressure will be different before and after the valve", "The valve will close due to decreased pressure, and so it will be completely impassable"],
+  correctOption: 0
+},
+
+{
+  question: "412.Aircraft pneumatic system regulation of air pressure taken from APU:",
+  options: ["Is carried out by regulation valve in the air offtake system from APU", "Is carried out by regulation valve located in aircraft pneumatic system", "Is determined by pressure of air taken from compressor at given APU revolutions"],
+  correctOption: 2
+},
+
+{
+  question: "413.Part of air offtake from turbine engine for aircraft pneumatic system is regulation of:",
+  options: ["Pressure and temperature of air taken from compressors of engines", "Air pressure taken from compressors of engines", "Air temperature taken from compressors of engines"],
+  correctOption: 0
+},
+
+{
+  question: "414.Distribution system of aircraft pneumatic system is composed of:",
+  options: ["Pipage made of thin-walled pipes made of strong anticorrosive and light material", "Pipage made of high-pressure thick-walled copper pipes", "Mostly armored hoses with big diameter"],
+  correctOption: 2
+},
+
+{
+  question: "415.The purpose of the interconnecting valve located in the pneumatic system of a two-engine aircraft with turbine drive is:",
+  options: ["To open or close offtake of air from engines", "To open or close offtake of air from APU", "To separate left or right part of pneumatic system"],
+  correctOption: 2
+},
+
+{
+  question: "416.What is indicated in the case of pneumatic system in the cockpit of an aircraft with turbine drive:",
+  options: ["Pressure of air supplied to the pneumatic system, and state of overheating around pneumatic pipage", "Only air temperature in pneumatic pipage", "Usually pressure and temperature of air supplied to the pneumatic system, and state of overheating around pneumatic pipage"],
+  correctOption: 2
+},
+
+{
+  question: "417.Temperature of air taken from operating engines from the pneumatic system is:",
+  options: ["Approximately 15°C", "Approximately 240°C", "Approximately 1750°C"],
+  correctOption: 1
+},
+
+{
+  question: "418.Water container in a big aircraft is pressurized:",
+  options: ["From engines and APU", "From the pneumatic system and compressor", "From compressor"],
+  correctOption: 1
+},
+
+{
+  question: "419.In case of overfilling of the water container during filling:",
+  options: ["Water flows outside of the aircraft through overflow", "Emergency filling valve closes", "Container gets damaged"],
+  correctOption: 0
+},
+
+{
+  question: "420.What types of toilets are used in aircraft:",
+  options: ["Only vacuum", "Only flush", "Dry, chemical, flush, and vacuum"],
+  correctOption: 2
+},
+
+{
+  question: "421.Used water is conducted through drainage pipage:",
+  options: ["To outlet spots outside of the aircraft or to waste toilet container", "Only to outlet spots outside of the aircraft", "Only to the waste toilet container"],
+  correctOption: 0
+},
+
+{
+  question: "422.Water heaters are:",
+  options: ["In each toilet on the water feed for toilet flushing", "In each toilet on the water feed to the water tap", "There is one central water heater at the water container"],
+  correctOption: 1
+},
+
+{
+  question: "423.Aircraft water drainage outlet spots:",
+  options: ["Do not exist", "Are not heated", "Are heated electrically"],
+  correctOption: 2
+},
+
+{
+  question: "424.Aircraft water feed is usually led to:",
+  options: ["Only to toilets for flushing", "Only to on-board kitchenettes", "Toilets and on-board kitchenettes"],
+  correctOption: 2
+},
+
+{
+  question: "425.Central maintenance computer is:",
+  options: ["Operator's device for diagnosing fleet's state", "Producer's device for diagnosing fleet's state of individual customers", "Device on board the aircraft meant for recording"],
+  correctOption: 2
+},
+
+{
+  question: "426.In what aircraft operation situations is PFR-Post Flight Record generated:",
+  options: ["Once a day", "After each flight", "After extraordinary event"],
+  correctOption: 1
+},
+
+{
+  question: "427. systems for recording of data on-board of aircraft do you know?",
+  options: ["Digital, visual", "Magnetic, electric", "Analogue, digital"],
+  correctOption: 2
+},
+
+{
+  question: "428.The most common method for recording output engine parameters and their evaluation for maintenance purposes in current multi-engine airliners is:",
+  options: ["Recording on paper tape", "Recording on magnetic tape", "Recording on microfiche"],
+  correctOption: 1
+},
+
+{
+  question: "429.What do automatic diagnostic systems (ADS) serve for:",
+  options: ["Monitoring of selected parameters", "Monitoring of airframe parameters, power group, and systems", "Monitoring of hours flown"],
+  correctOption: 1
+},
+
+
+
+
+
+
+
+
+
+
+
+
+
+];
+
+        
+     
+
+    let questions = [];
+    let unusedQuestions = [];
+    let currentQuestionIndex = 0;
+    let correctAnswers = 0;
+
+    const questionElement = document.getElementById("question");
+    const optionsElement = document.getElementById("options");
+    const scoreElement = document.getElementById("score");
+    const restartBtn = document.getElementById("restartBtn");
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function startQuiz() {
+        questions = [...initialQuestions];
+        unusedQuestions = [...questions];
+        currentQuestionIndex = 0;
+        correctAnswers = 0;
+        shuffleArray(unusedQuestions);
+        displayQuestion();
+    }
+
+    function restartQuiz() {
+        startQuiz();
+        scoreElement.textContent = "";
+        restartBtn.style.display = "none";
+    }
+
+    function displayQuestion() {
+        if (unusedQuestions.length === 0) {
+            alert("Quiz completed!");
+            showScore();
+            restartBtn.style.display = "block";
+            return;
+        }
+
+        const currentQuestion = unusedQuestions.pop();
+        questionElement.textContent = currentQuestion.question;
+
+        const options = [...currentQuestion.options];
+        shuffleArray(options);
+
+        optionsElement.innerHTML = "";
+        options.forEach((option, index) => {
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "option";
+            radio.value = currentQuestion.options.indexOf(option);
+
+            const label = document.createElement("label");
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(option));
+
+            optionsElement.appendChild(label);
+            optionsElement.appendChild(document.createElement("br"));
+        });
+    }
+
+    function checkAnswer() {
+        const selectedOption = document.querySelector('input[name="option"]:checked');
+        if (selectedOption !== null) {
+            const userAnswer = parseInt(selectedOption.value);
+            const currentQuestion = questions.find(question => question.question === questionElement.textContent);
+
+            if (userAnswer === currentQuestion.correctOption) {
+                alert("Correct!");
+                correctAnswers++;
+            } else {
+                alert(`Wrong! The correct answer was: ${currentQuestion.options[currentQuestion.correctOption]}`);
+            }
+
+            displayQuestion();
+        } else {
+            alert("Please select an answer.");
+        }
+    }
+
+    function showScore() {
+        scoreElement.textContent = `Your Score: ${correctAnswers} out of ${questions.length}`;
+    }
+
+    // Initial start
+    startQuiz();
+</script>
+
+</body>
+</html>
